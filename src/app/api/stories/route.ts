@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 export const revalidate = 0;
 
 export async function GET() {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from('stories')
@@ -18,8 +18,6 @@ export async function GET() {
   }
 
   return NextResponse.json({ stories: data }, {
-    headers: {
-      'Cache-Control': 'no-store',
-    },
+    headers: { 'Cache-Control': 'no-store' },
   });
 }
