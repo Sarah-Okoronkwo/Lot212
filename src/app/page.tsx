@@ -1,58 +1,32 @@
 import { createClient } from '@/lib/supabase/server';
 import { Story } from '@/types';
-import StoryViewer from '@/components/StoryViewer';
-import AllCaughtUp from '@/components/AllCaughtUp';
-
-export const revalidate = 0;
+import DailyStoryArchive from '@/components/DailyStoryArchive';
 
 interface DayGroup {
   date: string;
   stories: Story[];
 }
 
-async function getActiveStories(): Promise<Story[]> {
+export const revalidate = 0;
+
+export default async function HomePage() {
   const supabase = await createClient();
+
   const { data } = await supabase
     .from('stories')
-    .select('*')
-    .eq('is_active', true)
-    .gt('expires_at', new Date().toISOString())
-    .order('created_at', { ascending: true });
-  return (data as Story[]) || [];
-}
-
-async function getAllStoriesGrouped(): Promise<DayGroup[]> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from('stories')
-    .select('id, media_url, media_type, caption, category, created_at, expires_at, is_active');
-
-  console.log('Archive query - data count:', data?.length);
-  console.log('Archive query - error:', error);
-  console.log('Archive query - sample:', data?.[0]);
-
-  if (!data || data.length === 0) return [];
+    .select('id, media_url, media_type, caption, category, created_at, expires_at, is_active')
+    .order('created_at', { ascending: false });
 
   const groups: Record<string, Story[]> = {};
-  for (const story of data as Story[]) {
+  for (const story of (data || []) as Story[]) {
     const date = new Date(story.created_at).toISOString().split('T')[0];
     if (!groups[date]) groups[date] = [];
     groups[date].push(story);
   }
 
-  return Object.entries(groups)
+  const sorted: DayGroup[] = Object.entries(groups)
     .sort(([a], [b]) => b.localeCompare(a))
     .map(([date, stories]) => ({ date, stories }));
-}
 
-export default async function HomePage() {
-  const stories = await getActiveStories();
-  const groups = await getAllStoriesGrouped();
-
-  if (!stories || stories.length === 0) {
-    return <AllCaughtUp groups={groups} />;
-  }
-
-  // TEMP: force archive to test
-  return <StoryViewer initialStories={stories} />;
+  return <DailyStoryArchive groups={sorted} />;
 }
