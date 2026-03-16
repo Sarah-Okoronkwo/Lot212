@@ -43,7 +43,6 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
         />
       ) : (
         <>
-          {/* Placeholder skeleton */}
           {!imageLoaded && (
             <div className="absolute inset-0 bg-ink-900 animate-pulse" />
           )}
@@ -59,11 +58,19 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
         </>
       )}
 
-      {/* Bottom gradient overlay */}
-      <div className="absolute inset-0 story-gradient-bottom z-10" />
+      {/* Bottom gradient overlay — taller so text is always readable */}
+      <div
+        className="absolute inset-0 z-10"
+        style={{
+          background: 'linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.55) 35%, transparent 65%)',
+        }}
+      />
 
-      {/* Content */}
-      <div className="absolute bottom-0 left-0 right-0 z-10 px-5 pb-10 md:pb-8">
+      {/* Content — sits above the safe area */}
+      <div
+        className="absolute left-0 right-0 z-10 px-5"
+        style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 80px)' }}
+      >
         {/* Category badge */}
         <div className="mb-3">
           <span
@@ -83,15 +90,15 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
           className="text-white font-semibold leading-snug"
           style={{
             fontSize: 'clamp(18px, 4vw, 22px)',
-            textShadow: '0 2px 12px rgba(0,0,0,0.5)',
+            textShadow: '0 2px 12px rgba(0,0,0,0.6)',
           }}
         >
           {story.caption}
         </p>
 
-        {/* Swipe hint (mobile) */}
+        {/* Swipe hint */}
         <p
-          className="text-white/30 text-xs mt-3 md:hidden"
+          className="text-white/40 text-xs mt-3 md:hidden"
           style={{ fontFamily: 'var(--font-dm-mono)' }}
         >
           tap to continue →
