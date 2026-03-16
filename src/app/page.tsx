@@ -26,7 +26,13 @@ export default async function HomePage() {
 
   const sorted: DayGroup[] = Object.entries(groups)
     .sort(([a], [b]) => b.localeCompare(a))
-    .map(([date, stories]) => ({ date, stories }));
+    .map(([date, stories]) => ({
+      date,
+      // Sort stories within each day oldest first — first upload becomes thumbnail
+      stories: stories.sort(
+        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      ),
+    }));
 
   return <DailyStoryArchive groups={sorted} />;
 }
