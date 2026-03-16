@@ -19,7 +19,9 @@ export default async function HomePage() {
 
   const groups: Record<string, Story[]> = {};
   for (const story of (data || []) as Story[]) {
-    const date = new Date(story.created_at).toISOString().split('T')[0];
+    // Convert UTC to Lagos time (UTC+1) before grouping by date
+    const lagosTime = new Date(new Date(story.created_at).getTime() + 60 * 60 * 1000);
+    const date = lagosTime.toISOString().split('T')[0];
     if (!groups[date]) groups[date] = [];
     groups[date].push(story);
   }

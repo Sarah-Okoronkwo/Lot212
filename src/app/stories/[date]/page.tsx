@@ -12,8 +12,10 @@ async function getStoriesForDate(date: string): Promise<Story[]> {
 
   const supabase = await createClient();
 
-  const startOfDay = `${date}T00:00:00.000Z`;
-  const endOfDay = `${date}T23:59:59.999Z`;
+  // Use Lagos timezone offset (UTC+1) — query a 26-hour window to catch all stories
+  // that fall on this calendar date in West Africa Time
+  const startOfDay = `${date}T00:00:00+01:00`;
+  const endOfDay = `${date}T23:59:59+01:00`;
 
   const { data, error } = await supabase
     .from('stories')
