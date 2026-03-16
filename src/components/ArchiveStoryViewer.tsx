@@ -47,7 +47,7 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
       setIsPaused(false);
       elapsedRef.current = 0;
     } else {
-      setIsFinished(true);
+      router.back();
     }
   };
 
@@ -124,19 +124,7 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
           style={{ boxShadow: '0 32px 80px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.05)' }}
         >
           {/* Finished state */}
-          {isFinished ? (
-            <div className="absolute inset-0 bg-ink-950 flex flex-col items-center justify-center px-8 text-center z-20">
-              <p className="text-white font-bold text-xl mb-2">End of {formatDateLabel(date)}</p>
-              <p className="text-ink-400 text-sm mb-8">You've seen all stories from this day.</p>
-              <button
-                onClick={() => router.back()}
-                className="px-6 py-3 rounded-xl font-semibold text-sm text-ink-950 transition-all active:scale-95"
-                style={{ background: 'var(--color-accent, #e8ff47)' }}
-              >
-                Back to archive
-              </button>
-            </div>
-          ) : (
+          
             <>
               {currentStory && (
                 <StoryCard story={currentStory} isPaused={isPaused} />
@@ -197,7 +185,7 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
                 onHoldEnd={() => setIsPaused(false)}
               />
             </>
-          )}
+
         </div>
       </div>
     </div>
