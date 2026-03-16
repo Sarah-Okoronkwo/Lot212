@@ -1,0 +1,163 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-syne: 'Syne', sans-serif;
+  --font-dm-mono: 'DM Mono', monospace;
+
+  --color-bg: #18181f;
+  --color-surface: #23232d;
+  --color-surface-2: #2d2d3a;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-text: #f0f0f5;
+  --color-text-muted: #717183;
+  --color-accent: #e8ff47;
+  --color-accent-dark: #c8df00;
+
+  --story-duration: 7s;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-syne);
+  background: var(--color-bg);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Admin pages scroll */
+.admin-layout {
+  overflow-y: auto;
+  height: 100vh;
+}
+
+/* Custom scrollbar */
+.admin-layout::-webkit-scrollbar {
+  width: 6px;
+}
+.admin-layout::-webkit-scrollbar-track {
+  background: transparent;
+}
+.admin-layout::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+}
+
+/* Story progress bar animation */
+@keyframes progressFill {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+.progress-fill {
+  animation: progressFill var(--story-duration) linear forwards;
+}
+
+.progress-fill.paused {
+  animation-play-state: paused;
+}
+
+/* Tap flash feedback */
+@keyframes tapFlash {
+  0% { opacity: 0; }
+  50% { opacity: 0.15; }
+  100% { opacity: 0; }
+}
+
+.tap-feedback {
+  animation: tapFlash 0.3s ease;
+}
+
+/* Story card transitions */
+@keyframes storyEnter {
+  from {
+    opacity: 0;
+    transform: scale(1.03);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.story-enter {
+  animation: storyEnter 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Gradient overlays */
+.story-gradient-bottom {
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.85) 0%,
+    rgba(0, 0, 0, 0.4) 40%,
+    transparent 100%
+  );
+}
+
+.story-gradient-top {
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.6) 0%,
+    transparent 100%
+  );
+}
+
+/* Blurred desktop background */
+.desktop-blur-bg {
+  filter: blur(40px) saturate(1.5) brightness(0.4);
+  transform: scale(1.1);
+}
+
+/* Input styles for admin */
+.admin-input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #f0f0f5;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-family: var(--font-syne);
+  font-size: 14px;
+  width: 100%;
+  transition: border-color 0.2s, background 0.2s;
+  outline: none;
+}
+
+.admin-input:focus {
+  border-color: rgba(232, 255, 71, 0.5);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.admin-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* Category badge */
+.category-badge {
+  font-family: var(--font-dm-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 999px;
+  backdrop-filter: blur(8px);
+}
