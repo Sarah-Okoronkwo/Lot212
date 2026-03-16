@@ -23,12 +23,15 @@ async function getActiveStories(): Promise<Story[]> {
 
 async function getAllStoriesGrouped(): Promise<DayGroup[]> {
   const supabase = await createClient();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('stories')
-    .select('id, media_url, media_type, caption, category, created_at, expires_at, is_active')
-    .order('created_at', { ascending: false });
+    .select('id, media_url, media_type, caption, category, created_at, expires_at, is_active');
 
-  if (!data) return [];
+  console.log('Archive query - data count:', data?.length);
+  console.log('Archive query - error:', error);
+  console.log('Archive query - sample:', data?.[0]);
+
+  if (!data || data.length === 0) return [];
 
   const groups: Record<string, Story[]> = {};
   for (const story of data as Story[]) {
@@ -44,11 +47,12 @@ async function getAllStoriesGrouped(): Promise<DayGroup[]> {
 
 export default async function HomePage() {
   const stories = await getActiveStories();
+  const groups = await getAllStoriesGrouped();
 
   if (!stories || stories.length === 0) {
-    const groups = await getAllStoriesGrouped();
     return <AllCaughtUp groups={groups} />;
   }
 
+  // TEMP: force archive to test
   return <StoryViewer initialStories={stories} />;
 }

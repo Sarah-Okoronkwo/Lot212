@@ -9,7 +9,7 @@ interface DailyStoryCardProps {
   stories: Story[];
 }
 
-function formatDateLabel(dateStr: string): string {
+function formatDateLabel(dateStr: string): { primary: string; secondary: string | null } {
   const date = new Date(dateStr + 'T00:00:00');
   const today = new Date();
   const yesterday = new Date();
@@ -20,47 +20,39 @@ function formatDateLabel(dateStr: string): string {
     a.getMonth() === b.getMonth() &&
     a.getDate() === b.getDate();
 
-  if (isSameDay(date, today)) return 'Today';
-  if (isSameDay(date, yesterday)) return 'Yesterday';
+  if (isSameDay(date, today)) return { primary: 'Today', secondary: null };
+  if (isSameDay(date, yesterday)) return { primary: 'Yesterday', secondary: null };
 
-  return date.toLocaleDateString([], {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-  });
-}
+  const weekday = date.toLocaleDateString([], { weekday: 'long' });
+  const full = date.toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' });
+  const short = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
 
-function formatShortDate(dateStr: string): string {
-  const date = new Date(dateStr + 'T00:00:00');
-  return date.toLocaleDateString([], {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
+  // Within last 7 days — show weekday as primary
+  const diffDays = Math.floor((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+  if (diffDays < 7) return { primary: weekday, secondary: short };
+
+  return { primary: full, secondary: null };
 }
 
 export default function DailyStoryCard({ date, stories }: DailyStoryCardProps) {
   const router = useRouter();
   const firstStory = stories[0];
   const categoryColor = getCategoryColor(firstStory.category);
-  const dateLabel = formatDateLabel(date);
-  const shortDate = formatShortDate(date);
-  const isToday = dateLabel === 'Today';
+  const { primary, secondary } = formatDateLabel(date);
+  const isToday = primary === 'Today';
 
   return (
     <div
       onClick={() => router.push(`/stories/${date}`)}
-      className="relative flex items-center gap-4 rounded-2xl overflow-hidden cursor-pointer transition-all active:scale-[0.98]"
+      className="flex items-stretch rounded-2xl overflow-hidden cursor-pointer transition-all active:scale-[0.98] hover:brightness-110"
       style={{
-        background: 'rgba(28,28,36,0.9)',
-        border: `1px solid ${isToday ? 'rgba(232,255,71,0.2)' : 'rgba(255,255,255,0.07)'}`,
-        boxShadow: isToday
-          ? '0 0 0 1px rgba(232,255,71,0.1), 0 8px 32px rgba(0,0,0,0.4)'
-          : '0 4px 24px rgba(0,0,0,0.3)',
+        background: 'rgba(22,22,30,0.95)',
+        border: '1px solid rgba(255,255,255,0.07)',
+        minHeight: '100px',
       }}
     >
       {/* Thumbnail */}
-      <div className="relative flex-shrink-0 w-28 h-28 overflow-hidden" style={{ borderRadius: '14px 0 0 14px' }}>
+      <div className="relative flex-shrink-0 w-24 h-24 self-center ml-3 my-3 rounded-xl overflow-hidden">
         {firstStory.media_type === 'video' ? (
           <video
             src={firstStory.media_url}
@@ -74,59 +66,36 @@ export default function DailyStoryCard({ date, stories }: DailyStoryCardProps) {
             alt={firstStory.caption}
             fill
             className="object-cover"
-            sizes="112px"
+            sizes="96px"
           />
-        )}
-        {/* Gradient overlay on thumbnail */}
-        <div
-          className="absolute inset-0"
-          style={{ background: 'linear-gradient(135deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.05) 100%)' }}
-        />
-        {/* Story count badge */}
-        {stories.length > 1 && (
-          <div
-            className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded-md text-white"
-            style={{
-              background: 'rgba(0,0,0,0.7)',
-              backdropFilter: 'blur(4px)',
-              fontSize: '10px',
-              fontFamily: 'var(--font-dm-mono)',
-            }}
-          >
-            {stories.length}
-          </div>
         )}
       </div>
 
       {/* Content */}
-      <div className="flex-1 min-w-0 py-4 pr-2">
-        {/* Date label + short date */}
-        <div className="flex items-center gap-2 mb-1.5">
+      <div className="flex-1 min-w-0 px-4 py-4 flex flex-col justify-center">
+        {/* Day label row */}
+        <div className="flex items-center gap-2 mb-1">
           <span
-            className="font-bold"
-            style={{
-              fontSize: '15px',
-              color: isToday ? 'var(--color-accent)' : '#f0f0f5',
-              fontFamily: 'var(--font-syne)',
-            }}
+            className="font-bold text-sm"
+            style={{ color: isToday ? '#e8ff47' : '#e8a020' }}
           >
-            {dateLabel}
+            {primary}
           </span>
-          {!isToday && (
+          {secondary && (
             <span
-              className="text-ink-600"
-              style={{ fontSize: '11px', fontFamily: 'var(--font-dm-mono)' }}
+              className="text-xs"
+              style={{ color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-dm-mono)' }}
             >
-              {shortDate}
+              {secondary}
             </span>
           )}
         </div>
 
         {/* Caption */}
         <p
-          className="text-ink-300 leading-snug mb-2"
+          className="text-white font-semibold leading-snug mb-2"
           style={{
-            fontSize: '13px',
+            fontSize: '16px',
             display: '-webkit-box',
             WebkitLineClamp: 2,
             WebkitBoxOrient: 'vertical',
@@ -138,13 +107,14 @@ export default function DailyStoryCard({ date, stories }: DailyStoryCardProps) {
 
         {/* Category badge */}
         <span
-          className="inline-block text-xs font-semibold px-2 py-0.5 rounded-md"
+          className="inline-block self-start text-xs font-semibold px-2.5 py-1 rounded-full"
           style={{
-            background: `${categoryColor}20`,
+            background: `${categoryColor}22`,
             color: categoryColor,
+            border: `1px solid ${categoryColor}40`,
             fontFamily: 'var(--font-dm-mono)',
             fontSize: '10px',
-            letterSpacing: '0.05em',
+            letterSpacing: '0.06em',
             textTransform: 'uppercase',
           }}
         >
@@ -152,14 +122,26 @@ export default function DailyStoryCard({ date, stories }: DailyStoryCardProps) {
         </span>
       </div>
 
-      {/* Chevron */}
-      <div className="flex-shrink-0 pr-4">
+      {/* Right side: story count + chevron */}
+      <div className="flex flex-col items-center justify-center gap-2 pr-4 flex-shrink-0">
+        {stories.length > 1 && (
+          <div
+            className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-ink-950"
+            style={{
+              background: '#e8ff47',
+              fontSize: '12px',
+              fontFamily: 'var(--font-dm-mono)',
+            }}
+          >
+            {stories.length}
+          </div>
+        )}
         <svg
           width="16"
           height="16"
           viewBox="0 0 24 24"
           fill="none"
-          stroke="rgba(255,255,255,0.25)"
+          stroke="rgba(255,255,255,0.3)"
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
