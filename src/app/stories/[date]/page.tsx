@@ -4,11 +4,10 @@ import { Story } from '@/types';
 import ArchiveStoryViewer from '@/components/ArchiveStoryViewer';
 
 interface PageProps {
-  params: { date: string };
+  params: Promise<{ date: string }>;
 }
 
 async function getStoriesForDate(date: string): Promise<Story[]> {
-  // Validate date format YYYY-MM-DD
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return [];
 
   const supabase = await createClient();
@@ -28,11 +27,12 @@ async function getStoriesForDate(date: string): Promise<Story[]> {
 }
 
 export default async function DateStoriesPage({ params }: PageProps) {
-  const stories = await getStoriesForDate(params.date);
+  const { date } = await params;
+  const stories = await getStoriesForDate(date);
 
   if (!stories || stories.length === 0) {
     notFound();
   }
 
-  return <ArchiveStoryViewer stories={stories} date={params.date} />;
+  return <ArchiveStoryViewer stories={stories} date={date} />;
 }
