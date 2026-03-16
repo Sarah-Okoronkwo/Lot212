@@ -33,13 +33,29 @@ export default function DailyStoryArchive({ groups }: DailyStoryArchiveProps) {
         {/* Header */}
         <div className="pt-12 pb-8">
           <h1
-            className="text-white font-bold mb-1"
-            style={{ fontSize: 'clamp(26px, 6vw, 32px)' }}
+            style={{
+              fontSize: 'clamp(18px, 8vw, 26px)',
+              fontFamily: '"Playfair Display", Georgia, serif',
+              fontWeight: '700',
+              fontStyle: 'italic',
+              color: '#ffffff',
+              letterSpacing: '-0.01em',
+              lineHeight: '1.1',
+              marginTop: '16px',
+            }}
           >
-            Recent Stories
+            Lot 212
           </h1>
-          <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
-            Revisit the stories from the past two weeks.
+          <p
+            className="mt-2"
+            style={{
+              fontSize: '12px',
+              color: 'rgba(255,255,255,0.4)',
+              fontFamily: 'var(--font-dm-mono)',
+              letterSpacing: '0.02em',
+            }}
+          >
+            View recent stories
           </p>
         </div>
 
