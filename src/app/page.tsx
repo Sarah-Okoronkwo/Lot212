@@ -26,7 +26,6 @@ async function getAllStoriesGrouped(): Promise<DayGroup[]> {
   const { data } = await supabase
     .from('stories')
     .select('id, media_url, media_type, caption, category, created_at, expires_at, is_active')
-    .eq('is_active', true)
     .order('created_at', { ascending: false });
 
   if (!data) return [];
