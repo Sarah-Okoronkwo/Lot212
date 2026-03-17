@@ -39,3 +39,29 @@ export default async function DateStoriesPage({ params }: PageProps) {
 
   return <ArchiveStoryViewer stories={stories} date={date} />;
 }
+
+export async function generateMetadata({ params }: PageProps) {
+  const { date } = await params;
+  const stories = await getStoriesForDate(date);
+  const first = stories[0];
+
+  if (!first) return { title: 'Lot 212' };
+
+  return {
+    title: `${first.caption} — Lot 212`,
+    description: first.subtext || first.caption,
+    openGraph: {
+      title: first.caption,
+      description: first.subtext || first.caption,
+      images: first.media_type === 'image' ? [{ url: first.media_url }] : [],
+      type: 'article',
+      publishedTime: first.created_at,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: first.caption,
+      description: first.subtext || first.caption,
+      images: first.media_type === 'image' ? [first.media_url] : [],
+    },
+  };
+}
