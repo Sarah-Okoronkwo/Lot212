@@ -3,6 +3,7 @@ export interface Story {
   media_url: string;
   media_type: 'image' | 'video';
   caption: string;
+  subtext: string;
   category: string;
   created_at: string;
   expires_at: string;

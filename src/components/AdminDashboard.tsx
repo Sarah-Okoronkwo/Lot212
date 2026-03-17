@@ -41,6 +41,7 @@ export default function AdminDashboard({ initialStories, userEmail }: AdminDashb
   const [uploadSuccess, setUploadSuccess] = useState(false);
 
   const [caption, setCaption] = useState('');
+  const [subtext, setSubtext] = useState('');
   const [category, setCategory] = useState('breaking');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -88,7 +89,7 @@ export default function AdminDashboard({ initialStories, userEmail }: AdminDashb
 
       const { data: newStory, error: dbError } = await supabase
         .from('stories')
-        .insert({ media_url: urlData.publicUrl, media_type: mediaType, caption: caption.trim(), category })
+        .insert({ media_url: urlData.publicUrl, media_type: mediaType, caption: caption.trim(), subtext: subtext.trim(), category })
         .select()
         .single();
 
@@ -97,6 +98,7 @@ export default function AdminDashboard({ initialStories, userEmail }: AdminDashb
       setStories((prev) => [newStory as Story, ...prev]);
       setUploadSuccess(true);
       setCaption('');
+      setSubtext('');
       setCategory('breaking');
       setSelectedFile(null);
       setPreviewUrl(null);
@@ -246,6 +248,19 @@ export default function AdminDashboard({ initialStories, userEmail }: AdminDashb
               <label className="block text-ink-300 text-xs font-semibold mb-2 uppercase tracking-wider">Caption</label>
               <textarea value={caption} onChange={(e) => setCaption(e.target.value)} placeholder="Write a short, punchy headline..." rows={3} className="admin-input resize-none" />
               <p className="text-ink-600 text-xs mt-1">{caption.length}/150 characters</p>
+            </div>
+            {/* Subtext */}
+            <div>
+              <label className="block text-ink-300 text-xs font-semibold mb-2 uppercase tracking-wider">
+                Subtext <span className="text-ink-600 normal-case tracking-normal font-normal">(optional)</span>
+              </label>
+              <textarea
+                value={subtext}
+                onChange={(e) => setSubtext(e.target.value)}
+                placeholder="Add extra context, notes or details..."
+                rows={2}
+                className="admin-input resize-none"
+              />
             </div>
 
             <div>

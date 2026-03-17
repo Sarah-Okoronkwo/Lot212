@@ -86,6 +86,7 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
         </div>
 
         {/* Caption */}
+        {/* Caption */}
         <p
           className="text-white font-semibold leading-snug"
           style={{
@@ -95,6 +96,19 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
         >
           {story.caption}
         </p>
+
+        {/* Subtext */}
+        {story.subtext && (
+          <p
+            className="text-white/70 leading-snug mt-2"
+            style={{
+              fontSize: 'clamp(13px, 3vw, 15px)',
+              textShadow: '0 2px 8px rgba(0,0,0,0.5)',
+            }}
+          >
+            {story.subtext}
+          </p>
+        )}
 
         {/* Swipe hint */}
         <p
