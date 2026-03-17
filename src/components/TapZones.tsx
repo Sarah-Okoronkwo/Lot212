@@ -84,7 +84,7 @@ export default function TapZones({
   }, [onHoldEnd]);
 
   return (
-    <div className="absolute inset-0 z-30 flex" style={{ pointerEvents: 'none' }}>
+    <div className="absolute z-30 flex" style={{ pointerEvents: 'none', top: '80px', left: 0, right: 0, bottom: 0 }}>
       {/* Left zone */}
       <div
         className="w-1/3 h-full cursor-pointer"

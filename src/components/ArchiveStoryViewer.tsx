@@ -165,8 +165,8 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
               {/* Back button */}
               <button
                 onClick={() => router.back()}
-                className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all active:scale-90"
-                style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)' }}
+                className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all active:scale-90 z-40"
+                style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)', position: 'relative' }}
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M19 12H5M12 5l-7 7 7 7" />
@@ -198,11 +198,12 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
               {/* Close button */}
               <button
                 onClick={() => router.back()}
-                className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all active:scale-90"
+                className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all active:scale-90 z-40"
                 style={{
                   background: 'rgba(0,0,0,0.35)',
                   backdropFilter: 'blur(8px)',
                   border: '1px solid rgba(255,255,255,0.15)',
+                  position: 'relative',
                 }}
               >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
