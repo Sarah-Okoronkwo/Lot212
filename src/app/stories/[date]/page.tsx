@@ -20,6 +20,7 @@ async function getStoriesForDate(date: string): Promise<Story[]> {
   const { data, error } = await supabase
     .from('stories')
     .select('*')
+    .eq('is_active', true)
     .gte('created_at', startOfDay)
     .lte('created_at', endOfDay)
     .order('created_at', { ascending: true });
