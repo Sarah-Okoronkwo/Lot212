@@ -39,7 +39,9 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
           autoPlay
           muted
           playsInline
+          preload="auto"
           loop={false}
+          style={{ background: '#000' }}
         />
       ) : (
         <>

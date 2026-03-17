@@ -114,8 +114,26 @@ export default function AdminDashboard({ initialStories, userEmail }: AdminDashb
   const handleDelete = async (storyId: string) => {
     setDeletingId(storyId);
     try {
-      const { error } = await supabase.from('stories').update({ is_active: false }).eq('id', storyId);
+      // Find the story to get its media URL
+      const story = stories.find((s) => s.id === storyId);
+
+      // Soft delete from DB
+      const { error } = await supabase
+        .from('stories')
+        .update({ is_active: false })
+        .eq('id', storyId);
+
       if (error) throw error;
+
+      // Also delete from storage
+      if (story?.media_url) {
+        const url = new URL(story.media_url);
+        const pathParts = url.pathname.split('/stories/');
+        if (pathParts[1]) {
+          await supabase.storage.from('stories').remove([pathParts[1]]);
+        }
+      }
+
       setStories((prev) => prev.filter((s) => s.id !== storyId));
     } catch (err) {
       console.error('Delete error:', err);

@@ -37,8 +37,6 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
   const [isPaused, setIsPaused] = useState(false);
 
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const startTimeRef = useRef<number>(0);
-  const elapsedRef = useRef<number>(0);
   const touchStartY = useRef(0);
   const touchStartX = useRef(0);
 
@@ -46,7 +44,6 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
     if (currentIndex < stories.length - 1) {
       setCurrentIndex((i) => i + 1);
       setIsPaused(false);
-      elapsedRef.current = 0;
     } else {
       router.back();
     }
@@ -56,35 +53,24 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
     if (currentIndex > 0) {
       setCurrentIndex((i) => i - 1);
       setIsPaused(false);
-      elapsedRef.current = 0;
     }
   };
 
-  // Auto-advance timer
+  // Auto-advance timer — clean, no elapsed accumulation
   useEffect(() => {
     if (isPaused) return;
 
-    startTimeRef.current = Date.now();
     timerRef.current = setTimeout(() => {
       goToNext();
-    }, STORY_DURATION_MS - elapsedRef.current);
+    }, STORY_DURATION_MS);
 
     return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, [currentIndex, isPaused]);
-
-  // Pause/resume elapsed tracking
-  useEffect(() => {
-    if (isPaused) {
       if (timerRef.current) {
         clearTimeout(timerRef.current);
-        elapsedRef.current += Date.now() - startTimeRef.current;
+        timerRef.current = null;
       }
-    } else {
-      elapsedRef.current = 0;
-    }
-  }, [isPaused]);
+    };
+  }, [currentIndex, isPaused]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -106,7 +92,6 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
   const handleTouchEnd = (e: React.TouchEvent) => {
     const dy = e.changedTouches[0].clientY - touchStartY.current;
     const dx = Math.abs(e.changedTouches[0].clientX - touchStartX.current);
-    // Only trigger if swipe is more vertical than horizontal and long enough
     if (dy > 80 && dx < 60) {
       router.back();
     }
@@ -160,13 +145,18 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
               />
             </div>
 
-            {/* Header row: back arrow + logo + date + close button */}
+            {/* Header row */}
             <div className="flex items-center gap-3 px-4 pt-3">
               {/* Back button */}
               <button
                 onClick={() => router.back()}
-                className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all active:scale-90 z-40"
-                style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)', position: 'relative' }}
+                className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all active:scale-90"
+                style={{
+                  background: 'rgba(255,255,255,0.15)',
+                  backdropFilter: 'blur(8px)',
+                  position: 'relative',
+                  zIndex: 50,
+                }}
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M19 12H5M12 5l-7 7 7 7" />
@@ -198,12 +188,13 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
               {/* Close button */}
               <button
                 onClick={() => router.back()}
-                className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all active:scale-90 z-40"
+                className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all active:scale-90"
                 style={{
                   background: 'rgba(0,0,0,0.35)',
                   backdropFilter: 'blur(8px)',
                   border: '1px solid rgba(255,255,255,0.15)',
                   position: 'relative',
+                  zIndex: 50,
                 }}
               >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
@@ -213,6 +204,7 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
             </div>
           </div>
 
+          {/* Tap zones start below header */}
           <TapZones
             onTapLeft={goToPrev}
             onTapRight={goToNext}
@@ -222,10 +214,8 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
         </div>
       </div>
 
-      {/* Swipe down hint — fades in on mobile */}
-      <div
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 md:hidden flex flex-col items-center gap-1 opacity-30 pointer-events-none"
-      >
+      {/* Swipe down hint */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 md:hidden flex flex-col items-center gap-1 opacity-30 pointer-events-none">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round">
           <path d="M12 5v14M5 12l7 7 7-7" />
         </svg>

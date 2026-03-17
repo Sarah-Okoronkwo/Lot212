@@ -28,38 +28,26 @@ export default function StoryViewer({ initialStories }: StoryViewerProps) {
   } = useStoryStore();
 
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const startTimeRef = useRef<number>(0);
-  const elapsedRef = useRef<number>(0);
 
   useEffect(() => {
     setStories(initialStories);
   }, [initialStories, setStories]);
 
+  // Auto-advance timer — clean and simple, no elapsed accumulation
   useEffect(() => {
     if (isFinished || isPaused || stories.length === 0) return;
 
-    startTimeRef.current = Date.now();
-
     timerRef.current = setTimeout(() => {
       goToNext();
-    }, STORY_DURATION_MS - elapsedRef.current);
+    }, STORY_DURATION_MS);
 
     return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-      elapsedRef.current = 0;
-    };
-  }, [currentIndex, isPaused, isFinished, stories.length, goToNext]);
-
-  useEffect(() => {
-    if (isPaused) {
       if (timerRef.current) {
         clearTimeout(timerRef.current);
-        elapsedRef.current += Date.now() - startTimeRef.current;
+        timerRef.current = null;
       }
-    } else {
-      elapsedRef.current = 0;
-    }
-  }, [isPaused]);
+    };
+  }, [currentIndex, isPaused, isFinished, stories.length, goToNext]);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -137,6 +125,7 @@ export default function StoryViewer({ initialStories }: StoryViewerProps) {
             </div>
           </div>
 
+          {/* Tap zones start below header to avoid blocking buttons */}
           <TapZones
             onTapLeft={goToPrev}
             onTapRight={goToNext}
