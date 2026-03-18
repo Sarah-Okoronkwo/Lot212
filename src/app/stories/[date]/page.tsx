@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation';
 import { Story } from '@/types';
 import ArchiveStoryViewer from '@/components/ArchiveStoryViewer';
 
+export const revalidate = 30;
+
 interface PageProps {
   params: Promise<{ date: string }>;
 }
@@ -12,8 +14,6 @@ async function getStoriesForDate(date: string): Promise<Story[]> {
 
   const supabase = await createClient();
 
-  // Use Lagos timezone offset (UTC+1) — query a 26-hour window to catch all stories
-  // that fall on this calendar date in West Africa Time
   const startOfDay = `${date}T00:00:00+01:00`;
   const endOfDay = `${date}T23:59:59+01:00`;
 
