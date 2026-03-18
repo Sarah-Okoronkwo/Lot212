@@ -4,7 +4,7 @@ import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
-import { Story, STORY_CATEGORIES, getCategoryColor, getCategoryLabel } from '@/types';
+import { Story, STORY_CATEGORIES, getCategoryColor, getCategoryLabel, generateSlug } from '@/types';
 
 interface AdminDashboardProps {
   initialStories: Story[];
@@ -79,6 +79,9 @@ export default function AdminDashboard({ initialStories, userEmail }: AdminDashb
       const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
       const mediaType = selectedFile.type.startsWith('video') ? 'video' : 'image';
 
+      // Generate slug from caption
+      const slug = generateSlug(caption.trim());
+
       const { error: storageError } = await supabase.storage
         .from('stories')
         .upload(fileName, selectedFile, { upsert: false });
@@ -89,7 +92,14 @@ export default function AdminDashboard({ initialStories, userEmail }: AdminDashb
 
       const { data: newStory, error: dbError } = await supabase
         .from('stories')
-        .insert({ media_url: urlData.publicUrl, media_type: mediaType, caption: caption.trim(), subtext: subtext.trim(), category })
+        .insert({
+          media_url: urlData.publicUrl,
+          media_type: mediaType,
+          caption: caption.trim(),
+          subtext: subtext.trim(),
+          slug,
+          category,
+        })
         .select()
         .single();
 
@@ -114,18 +124,13 @@ export default function AdminDashboard({ initialStories, userEmail }: AdminDashb
   const handleDelete = async (storyId: string) => {
     setDeletingId(storyId);
     try {
-      // Find the story to get its media URL
       const story = stories.find((s) => s.id === storyId);
-
-      // Soft delete from DB
       const { error } = await supabase
         .from('stories')
         .update({ is_active: false })
         .eq('id', storyId);
-
       if (error) throw error;
 
-      // Also delete from storage
       if (story?.media_url) {
         const url = new URL(story.media_url);
         const pathParts = url.pathname.split('/stories/');
@@ -162,11 +167,7 @@ export default function AdminDashboard({ initialStories, userEmail }: AdminDashb
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <a
-            href="/"
-            target="_blank"
-            className="hidden md:flex items-center gap-1.5 text-ink-400 text-sm hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-white/5"
-          >
+          <a href="/" target="_blank" className="hidden md:flex items-center gap-1.5 text-ink-400 text-sm hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-white/5">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
               <polyline points="15 3 21 3 21 9" />
@@ -174,10 +175,7 @@ export default function AdminDashboard({ initialStories, userEmail }: AdminDashb
             </svg>
             View site
           </a>
-          <button
-            onClick={handleSignOut}
-            className="text-ink-400 text-sm hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-white/5"
-          >
+          <button onClick={handleSignOut} className="text-ink-400 text-sm hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-white/5">
             Sign out
           </button>
         </div>
@@ -200,15 +198,9 @@ export default function AdminDashboard({ initialStories, userEmail }: AdminDashb
       {/* Tabs */}
       <div className="flex gap-1 mb-6 p-1 rounded-xl w-fit" style={{ background: 'rgba(255,255,255,0.05)' }}>
         {(['manage', 'upload'] as const).map((tab) => (
-          <button
-            key={tab}
-            type="button"
-            onClick={() => setActiveTab(tab)}
+          <button key={tab} type="button" onClick={() => setActiveTab(tab)}
             className="px-5 py-2 rounded-lg text-sm font-semibold capitalize transition-all"
-            style={{
-              background: activeTab === tab ? 'rgba(255,255,255,0.1)' : 'transparent',
-              color: activeTab === tab ? '#fff' : '#717183',
-            }}
+            style={{ background: activeTab === tab ? 'rgba(255,255,255,0.1)' : 'transparent', color: activeTab === tab ? '#fff' : '#717183' }}
           >
             {tab === 'manage' ? 'Manage Stories' : 'Upload New'}
           </button>
@@ -220,20 +212,13 @@ export default function AdminDashboard({ initialStories, userEmail }: AdminDashb
         <div className="rounded-2xl p-6 md:p-8" style={{ background: 'rgba(35,35,45,0.8)', border: '1px solid rgba(255,255,255,0.07)' }}>
           <h2 className="text-white text-lg font-bold mb-6">Upload New Story</h2>
           <form onSubmit={handleUpload} className="space-y-5">
+
+            {/* File zone */}
             <div>
               <label className="block text-ink-300 text-xs font-semibold mb-2 uppercase tracking-wider">Media File</label>
               <input ref={fileInputRef} type="file" accept="image/*,video/*" onChange={handleFileChange} style={{ display: 'none' }} />
-              <div
-                onClick={handleDropZoneClick}
-                className="rounded-xl border-2 border-dashed transition-colors cursor-pointer overflow-hidden"
-                style={{
-                  borderColor: selectedFile ? 'rgba(232,255,71,0.4)' : 'rgba(255,255,255,0.15)',
-                  background: selectedFile ? 'rgba(232,255,71,0.04)' : 'rgba(255,255,255,0.02)',
-                  minHeight: '160px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
+              <div onClick={handleDropZoneClick} className="rounded-xl border-2 border-dashed transition-colors cursor-pointer overflow-hidden"
+                style={{ borderColor: selectedFile ? 'rgba(232,255,71,0.4)' : 'rgba(255,255,255,0.15)', background: selectedFile ? 'rgba(232,255,71,0.04)' : 'rgba(255,255,255,0.02)', minHeight: '160px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
                 {previewUrl && selectedFile ? (
                   <div className="relative w-full">
@@ -262,39 +247,36 @@ export default function AdminDashboard({ initialStories, userEmail }: AdminDashb
               )}
             </div>
 
+            {/* Caption */}
             <div>
               <label className="block text-ink-300 text-xs font-semibold mb-2 uppercase tracking-wider">Caption</label>
               <textarea value={caption} onChange={(e) => setCaption(e.target.value)} placeholder="Write a short, punchy headline..." rows={3} className="admin-input resize-none" />
-              <p className="text-ink-600 text-xs mt-1">{caption.length}/150 characters</p>
+              <div className="flex items-center justify-between mt-1">
+                <p className="text-ink-600 text-xs">{caption.length}/150 characters</p>
+                {caption.trim() && (
+                  <p className="text-ink-600 text-xs" style={{ fontFamily: 'var(--font-dm-mono)' }}>
+                    slug: {generateSlug(caption.trim())}
+                  </p>
+                )}
+              </div>
             </div>
+
             {/* Subtext */}
             <div>
               <label className="block text-ink-300 text-xs font-semibold mb-2 uppercase tracking-wider">
                 Subtext <span className="text-ink-600 normal-case tracking-normal font-normal">(optional)</span>
               </label>
-              <textarea
-                value={subtext}
-                onChange={(e) => setSubtext(e.target.value)}
-                placeholder="Add extra context, notes or details..."
-                rows={2}
-                className="admin-input resize-none"
-              />
+              <textarea value={subtext} onChange={(e) => setSubtext(e.target.value)} placeholder="Add extra context, notes or details..." rows={2} className="admin-input resize-none" />
             </div>
 
+            {/* Category */}
             <div>
               <label className="block text-ink-300 text-xs font-semibold mb-2 uppercase tracking-wider">Category</label>
               <div className="flex flex-wrap gap-2">
                 {STORY_CATEGORIES.map((cat) => (
-                  <button
-                    key={cat.value}
-                    type="button"
-                    onClick={() => setCategory(cat.value)}
+                  <button key={cat.value} type="button" onClick={() => setCategory(cat.value)}
                     className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
-                    style={{
-                      background: category === cat.value ? `${cat.color}25` : 'rgba(255,255,255,0.05)',
-                      border: `1px solid ${category === cat.value ? cat.color + '50' : 'rgba(255,255,255,0.08)'}`,
-                      color: category === cat.value ? cat.color : '#717183',
-                    }}
+                    style={{ background: category === cat.value ? `${cat.color}25` : 'rgba(255,255,255,0.05)', border: `1px solid ${category === cat.value ? cat.color + '50' : 'rgba(255,255,255,0.08)'}`, color: category === cat.value ? cat.color : '#717183' }}
                   >
                     {cat.label}
                   </button>
@@ -312,9 +294,7 @@ export default function AdminDashboard({ initialStories, userEmail }: AdminDashb
               </div>
             )}
 
-            <button
-              type="submit"
-              disabled={uploading || !selectedFile || !caption.trim()}
+            <button type="submit" disabled={uploading || !selectedFile || !caption.trim()}
               className="w-full py-3 rounded-xl font-semibold text-sm transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
               style={{ background: 'var(--color-accent)', color: '#18181f' }}
             >
@@ -339,15 +319,11 @@ export default function AdminDashboard({ initialStories, userEmail }: AdminDashb
               const { text: timeText, urgent } = formatTimeRemaining(story.expires_at);
               const isExpired = new Date(story.expires_at).getTime() <= Date.now();
               const catColor = getCategoryColor(story.category);
+              const storyDate = new Date(story.created_at).toISOString().split('T')[0];
+
               return (
-                <div
-                  key={story.id}
-                  className="rounded-xl p-4 flex items-center gap-4"
-                  style={{
-                    background: 'rgba(35,35,45,0.8)',
-                    border: `1px solid ${isExpired ? 'rgba(255,59,59,0.15)' : 'rgba(255,255,255,0.07)'}`,
-                    opacity: isExpired ? 0.6 : 1,
-                  }}
+                <div key={story.id} className="rounded-xl p-4 flex items-center gap-4"
+                  style={{ background: 'rgba(35,35,45,0.8)', border: `1px solid ${isExpired ? 'rgba(255,59,59,0.15)' : 'rgba(255,255,255,0.07)'}`, opacity: isExpired ? 0.6 : 1 }}
                 >
                   <div className="w-16 h-16 rounded-lg flex-shrink-0 overflow-hidden bg-ink-800 relative">
                     {story.media_type === 'video' ? (
@@ -363,6 +339,11 @@ export default function AdminDashboard({ initialStories, userEmail }: AdminDashb
                       </span>
                     </div>
                     <p className="text-white text-sm font-semibold truncate">{story.caption}</p>
+                    {story.slug && (
+                      <p className="text-ink-600 text-xs truncate mt-0.5" style={{ fontFamily: 'var(--font-dm-mono)' }}>
+                        /stories/{storyDate}/{story.slug}
+                      </p>
+                    )}
                     <div className="flex items-center gap-3 mt-1">
                       <span className="text-xs" style={{ fontFamily: 'var(--font-dm-mono)', color: isExpired ? '#ff3b3b' : urgent ? '#ff9500' : '#717183' }}>
                         {timeText}
@@ -370,10 +351,7 @@ export default function AdminDashboard({ initialStories, userEmail }: AdminDashb
                       <span className="text-ink-700 text-xs" style={{ fontFamily: 'var(--font-dm-mono)' }}>{formatDate(story.created_at)}</span>
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(story.id)}
-                    disabled={deletingId === story.id}
+                  <button type="button" onClick={() => handleDelete(story.id)} disabled={deletingId === story.id}
                     className="flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center transition-all hover:bg-red-500/20 text-ink-500 hover:text-red-400 disabled:opacity-50"
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

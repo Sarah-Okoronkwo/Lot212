@@ -4,6 +4,7 @@ export interface Story {
   media_type: 'image' | 'video';
   caption: string;
   subtext: string;
+  slug: string;
   category: string;
   created_at: string;
   expires_at: string;
@@ -49,4 +50,16 @@ export function getCategoryColor(category: string): string {
 export function getCategoryLabel(category: string): string {
   const found = STORY_CATEGORIES.find((c) => c.value === category);
   return found?.label ?? category;
+}
+
+// Generate a URL-safe slug from a caption
+export function generateSlug(caption: string): string {
+  return caption
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '')   // remove special chars
+    .replace(/\s+/g, '-')            // spaces to hyphens
+    .replace(/-+/g, '-')             // collapse multiple hyphens
+    .replace(/^-|-$/g, '')           // trim leading/trailing hyphens
+    .slice(0, 80);                   // max 80 chars
 }

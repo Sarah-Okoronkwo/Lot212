@@ -6,28 +6,50 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const { data } = await supabase
     .from('stories')
-    .select('created_at')
+    .select('created_at, slug')
     .eq('is_active', true)
     .order('created_at', { ascending: false });
 
+  const stories = data || [];
+
+  // Get unique dates for day pages
   const dates = [...new Set(
-    (data || []).map((s) => new Date(s.created_at).toISOString().split('T')[0])
+    stories.map((s) => {
+      const lagosTime = new Date(new Date(s.created_at).getTime() + 60 * 60 * 1000);
+      return lagosTime.toISOString().split('T')[0];
+    })
   )];
 
-  const storyPages = dates.map((date) => ({
+  // Day-level pages
+  const dayPages: MetadataRoute.Sitemap = dates.map((date) => ({
     url: `https://lot212.vercel.app/stories/${date}`,
     lastModified: new Date(date),
-    changeFrequency: 'daily' as const,
+    changeFrequency: 'daily',
     priority: 0.8,
   }));
+
+  // Individual slide pages (only those with slugs)
+  const slidePages: MetadataRoute.Sitemap = stories
+    .filter((s) => s.slug)
+    .map((s) => {
+      const lagosTime = new Date(new Date(s.created_at).getTime() + 60 * 60 * 1000);
+      const date = lagosTime.toISOString().split('T')[0];
+      return {
+        url: `https://lot212.vercel.app/stories/${date}/${s.slug}`,
+        lastModified: new Date(s.created_at),
+        changeFrequency: 'never' as const,
+        priority: 0.9,
+      };
+    });
 
   return [
     {
       url: 'https://lot212.vercel.app',
       lastModified: new Date(),
-      changeFrequency: 'daily' as const,
+      changeFrequency: 'daily',
       priority: 1,
     },
-    ...storyPages,
+    ...slidePages,
+    ...dayPages,
   ];
 }
