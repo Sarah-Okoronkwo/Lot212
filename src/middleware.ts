@@ -27,7 +27,14 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  const { data: { user } } = await supabase.auth.getUser();
+  let user = null;
+  try {
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+  } catch {
+    // Stale session — treat as logged out
+    user = null;
+  }
 
   const isLoginPage = request.nextUrl.pathname === '/admin/login';
   const isAdminPage =
