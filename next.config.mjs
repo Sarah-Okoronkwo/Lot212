@@ -9,6 +9,8 @@ const nextConfig = {
         pathname: '/storage/v1/object/public/**',
       },
     ],
+    // Skip optimization for Supabase storage images — serve them directly
+    unoptimized: true,
   },
 };
 

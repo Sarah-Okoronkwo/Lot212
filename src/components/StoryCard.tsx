@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
-import { Story, getCategoryColor, getCategoryLabel } from '@/types';
+import { Story, getCategoryColor, getCategoryLabel, getWebPUrl } from '@/types';
 
 interface StoryCardProps {
   story: Story;
@@ -13,6 +13,14 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
   const categoryColor = getCategoryColor(story.category);
+
+  // Use alt_text if available, fall back to caption
+  const imageAlt = story.alt_text || story.caption;
+
+  // Use WebP URL for images
+  const imageUrl = story.media_type === 'image'
+    ? getWebPUrl(story.media_url, 1080)
+    : story.media_url;
 
   useEffect(() => {
     setImageLoaded(false);
@@ -49,32 +57,38 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
             <div className="absolute inset-0 bg-ink-900 animate-pulse" />
           )}
           <Image
-            src={story.media_url}
-            alt={story.caption}
+            src={imageUrl}
+            alt={imageAlt}
             fill
             priority
             className="object-cover"
             onLoad={() => setImageLoaded(true)}
             sizes="(max-width: 768px) 100vw, 420px"
+            unoptimized
           />
         </>
       )}
 
-      {/* Bottom gradient overlay — taller so text is always readable */}
+      {/* Bottom gradient */}
       <div
         className="absolute inset-0 z-10"
         style={{
-          background: 'linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.55) 35%, transparent 65%)',
+          background: story.subtext
+            ? 'linear-gradient(to top, rgba(0,0,0,0.96) 0%, rgba(0,0,0,0.75) 40%, rgba(0,0,0,0.2) 65%, transparent 100%)'
+            : 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.5) 35%, transparent 65%)',
         }}
       />
 
-      {/* Content — sits above the safe area */}
+      {/* Content */}
       <div
-        className="absolute left-0 right-0 z-10 px-5"
-        style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 80px)' }}
+        className="absolute left-0 right-0 z-10 px-5 flex flex-col"
+        style={{
+          bottom: 'calc(env(safe-area-inset-bottom, 0px) + 72px)',
+          maxHeight: '55%',
+        }}
       >
         {/* Category badge */}
-        <div className="mb-3">
+        <div className="mb-2 flex-shrink-0">
           <span
             className="category-badge"
             style={{
@@ -88,11 +102,10 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
         </div>
 
         {/* Caption */}
-        {/* Caption */}
         <p
-          className="text-white font-semibold leading-snug"
+          className="text-white font-semibold leading-snug flex-shrink-0"
           style={{
-            fontSize: 'clamp(18px, 4vw, 22px)',
+            fontSize: 'clamp(17px, 4vw, 21px)',
             textShadow: '0 2px 12px rgba(0,0,0,0.6)',
           }}
         >
@@ -102,19 +115,22 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
         {/* Subtext */}
         {story.subtext && (
           <p
-            className="text-white/70 leading-snug mt-2"
+            className="text-white/75 leading-relaxed mt-2 overflow-hidden"
             style={{
-              fontSize: 'clamp(13px, 3vw, 15px)',
+              fontSize: 'clamp(12px, 3vw, 14px)',
               textShadow: '0 2px 8px rgba(0,0,0,0.5)',
+              display: '-webkit-box',
+              WebkitLineClamp: 4,
+              WebkitBoxOrient: 'vertical',
             }}
           >
             {story.subtext}
           </p>
         )}
 
-        {/* Swipe hint */}
+        {/* Tap hint */}
         <p
-          className="text-white/40 text-xs mt-3 md:hidden"
+          className="text-white/30 text-xs mt-2 md:hidden flex-shrink-0"
           style={{ fontFamily: 'var(--font-dm-mono)' }}
         >
           tap to continue →

@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Story, getCategoryColor, getCategoryLabel } from '@/types';
+import { Story, getCategoryColor, getCategoryLabel, getWebPUrl } from '@/types';
 
 interface DailyStoryCardProps {
   date: string;
@@ -25,7 +25,6 @@ function formatDateLabel(dateStr: string): { primary: string; secondary: string 
 
   const weekday = date.toLocaleDateString([], { weekday: 'long' });
   const short = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-
   const diffDays = Math.floor((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
   if (diffDays < 7) return { primary: weekday, secondary: short };
 
@@ -40,8 +39,14 @@ export default function DailyStoryCard({ date, stories }: DailyStoryCardProps) {
   const { primary, secondary } = formatDateLabel(date);
   const isToday = primary === 'Today';
 
-  // If first story has a slug, link directly to that slide page
-  // Otherwise fall back to the day page
+  // WebP thumbnail at small size for fast archive loading
+  const thumbnailUrl = firstStory.media_type === 'image'
+    ? getWebPUrl(firstStory.media_url, 200)
+    : firstStory.media_url;
+
+  // Alt text for thumbnail
+  const thumbnailAlt = firstStory.alt_text || firstStory.caption;
+
   const handleClick = () => {
     if (firstStory.slug) {
       router.push(`/stories/${date}/${firstStory.slug}`);
@@ -66,18 +71,18 @@ export default function DailyStoryCard({ date, stories }: DailyStoryCardProps) {
           <video src={firstStory.media_url} className="w-full h-full object-cover" muted playsInline />
         ) : (
           <Image
-            src={firstStory.media_url}
-            alt={firstStory.caption}
+            src={thumbnailUrl}
+            alt={thumbnailAlt}
             fill
             className="object-cover"
             sizes="96px"
+            unoptimized
           />
         )}
       </div>
 
       {/* Content */}
       <div className="flex-1 min-w-0 px-4 py-4 flex flex-col justify-center">
-        {/* Day label row */}
         <div className="flex items-center gap-2 mb-1">
           <span className="font-bold text-sm" style={{ color: isToday ? '#e8ff47' : '#e8a020' }}>
             {primary}
@@ -89,7 +94,6 @@ export default function DailyStoryCard({ date, stories }: DailyStoryCardProps) {
           )}
         </div>
 
-        {/* Caption */}
         <p
           className="text-white font-semibold leading-snug mb-2"
           style={{
@@ -103,7 +107,6 @@ export default function DailyStoryCard({ date, stories }: DailyStoryCardProps) {
           {firstStory.caption}
         </p>
 
-        {/* Category badge */}
         <span
           className="inline-block self-start text-xs font-semibold px-2.5 py-1 rounded-full"
           style={{
@@ -120,7 +123,7 @@ export default function DailyStoryCard({ date, stories }: DailyStoryCardProps) {
         </span>
       </div>
 
-      {/* Right side: story count + chevron */}
+      {/* Right side */}
       <div className="flex flex-col items-center justify-center gap-2 pr-4 flex-shrink-0">
         {stories.length > 1 && (
           <div

@@ -5,6 +5,7 @@ export interface Story {
   caption: string;
   subtext: string;
   slug: string;
+  alt_text: string;
   category: string;
   created_at: string;
   expires_at: string;
@@ -52,14 +53,29 @@ export function getCategoryLabel(category: string): string {
   return found?.label ?? category;
 }
 
-// Generate a URL-safe slug from a caption
 export function generateSlug(caption: string): string {
   return caption
     .toLowerCase()
     .trim()
-    .replace(/[^a-z0-9\s-]/g, '')   // remove special chars
-    .replace(/\s+/g, '-')            // spaces to hyphens
-    .replace(/-+/g, '-')             // collapse multiple hyphens
-    .replace(/^-|-$/g, '')           // trim leading/trailing hyphens
-    .slice(0, 80);                   // max 80 chars
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 80);
+}
+
+// Convert Supabase image URL to WebP format using Supabase Transform API
+export function getWebPUrl(mediaUrl: string, width?: number): string {
+  if (!mediaUrl || !mediaUrl.includes('supabase.co')) return mediaUrl;
+
+  try {
+    const url = new URL(mediaUrl);
+    // Use Supabase image transformation
+    url.searchParams.set('format', 'webp');
+    url.searchParams.set('quality', '80');
+    if (width) url.searchParams.set('width', String(width));
+    return url.toString();
+  } catch {
+    return mediaUrl;
+  }
 }
