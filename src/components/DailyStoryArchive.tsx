@@ -15,10 +15,12 @@ interface DailyStoryArchiveProps {
 export default function DailyStoryArchive({ groups }: DailyStoryArchiveProps) {
   return (
     <div
-      className="min-h-screen w-full overflow-y-auto"
+      className="min-h-screen w-full"
       style={{
         background: '#0e0e14',
         fontFamily: 'var(--font-syne)',
+        overflowY: 'auto',
+        height: '100vh',
       }}
     >
       {/* Subtle background gradient */}

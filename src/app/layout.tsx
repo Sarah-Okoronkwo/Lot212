@@ -30,7 +30,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </head>
-      <body className="bg-ink-950 text-ink-50 overflow-hidden h-screen">
+      <body className="bg-ink-950 text-ink-50">
         {children}
         <Analytics />
       </body>
