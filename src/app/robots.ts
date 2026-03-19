@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: '/admin/',
     },
-    sitemap: 'https://lot212.vercel.app/sitemap.xml',
+    sitemap: 'https://lot212.com/sitemap.xml',
   };
 }
