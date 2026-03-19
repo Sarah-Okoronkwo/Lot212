@@ -83,7 +83,7 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
       <div
         className="absolute left-0 right-0 z-10 px-5 flex flex-col"
         style={{
-          bottom: 'calc(env(safe-area-inset-bottom, 0px) + 120px)',
+          bottom: 'calc(env(safe-area-inset-bottom, 0px) + 100px)',
           maxHeight: '55%',
         }}
       >
