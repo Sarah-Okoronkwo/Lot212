@@ -33,7 +33,7 @@ export default function DailyStoryArchive({ groups }: DailyStoryArchiveProps) {
 
       <div className="relative z-10 max-w-lg mx-auto px-4 pb-16">
         {/* Header */}
-        <div className="pt-12 pb-8">
+        <div className="pt-6 pb-8">
           <h1
             style={{
               fontSize: 'clamp(18px, 8vw, 26px)',
