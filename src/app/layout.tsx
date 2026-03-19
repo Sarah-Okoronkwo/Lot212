@@ -5,6 +5,9 @@ export const metadata: Metadata = {
   title: 'Lot 212',
   description: 'Stay current with the latest news and updates from Lot 212.',
   keywords: ['Lot 212', 'news', 'stories', 'updates'],
+  verification: {
+    google: 'C_qJdVyxpifyuT_bkmxSJK5xaZ688BT8DUVyKU08H0Q',
+  },
   openGraph: {
     title: 'Lot 212',
     description: 'Stay current with the latest news and updates from Lot 212.',
