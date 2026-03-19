@@ -39,10 +39,7 @@ export default function DailyStoryCard({ date, stories }: DailyStoryCardProps) {
   const { primary, secondary } = formatDateLabel(date);
   const isToday = primary === 'Today';
 
-  // WebP thumbnail at small size for fast archive loading
-  const thumbnailUrl = firstStory.media_type === 'image'
-    ? getWebPUrl(firstStory.media_url, 200)
-    : firstStory.media_url;
+ const thumbnailUrl = firstStory.media_url;
 
   // Alt text for thumbnail
   const thumbnailAlt = firstStory.alt_text || firstStory.caption;

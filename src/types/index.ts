@@ -64,18 +64,7 @@ export function generateSlug(caption: string): string {
     .slice(0, 80);
 }
 
-// Convert Supabase image URL to WebP format using Supabase Transform API
 export function getWebPUrl(mediaUrl: string, width?: number): string {
-  if (!mediaUrl || !mediaUrl.includes('supabase.co')) return mediaUrl;
-
-  try {
-    const url = new URL(mediaUrl);
-    // Use Supabase image transformation
-    url.searchParams.set('format', 'webp');
-    url.searchParams.set('quality', '80');
-    if (width) url.searchParams.set('width', String(width));
-    return url.toString();
-  } catch {
-    return mediaUrl;
-  }
+  // Return original URL unchanged — WebP transform not reliable on free plan
+  return mediaUrl;
 }

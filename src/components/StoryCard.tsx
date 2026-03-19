@@ -17,10 +17,7 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
   // Use alt_text if available, fall back to caption
   const imageAlt = story.alt_text || story.caption;
 
-  // Use WebP URL for images
-  const imageUrl = story.media_type === 'image'
-    ? getWebPUrl(story.media_url, 1080)
-    : story.media_url;
+  const imageUrl = story.media_url;
 
   useEffect(() => {
     setImageLoaded(false);
