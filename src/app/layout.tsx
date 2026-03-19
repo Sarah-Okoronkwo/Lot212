@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { Analytics } from '@vercel/analytics/react';
 
 export const metadata: Metadata = {
   title: 'Lot 212',
@@ -29,8 +30,9 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </head>
-      <body className="bg-ink-950 text-ink-50 overflow-auto h-screen">
+      <body className="bg-ink-950 text-ink-50 overflow-hidden h-screen">
         {children}
+        <Analytics />
       </body>
     </html>
   );
