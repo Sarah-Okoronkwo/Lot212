@@ -71,8 +71,8 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
         className="absolute inset-0 z-10"
         style={{
           background: story.subtext
-            ? 'linear-gradient(to top, rgba(0,0,0,0.96) 0%, rgba(0,0,0,0.75) 40%, rgba(0,0,0,0.2) 65%, transparent 100%)'
-            : 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.5) 35%, transparent 65%)',
+            ? 'linear-gradient(to top, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.85) 45%, rgba(0,0,0,0.3) 70%, transparent 100%)'
+            : 'linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.6) 40%, transparent 70%)',
         }}
       />
 
@@ -80,7 +80,7 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
       <div
         className="absolute left-0 right-0 z-10 px-5 flex flex-col"
         style={{
-          bottom: 'calc(env(safe-area-inset-bottom, 0px) + 100px)',
+          bottom: 'calc(env(safe-area-inset-bottom, 0px) + 150px)',
           maxHeight: '55%',
         }}
       >
@@ -102,7 +102,7 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
         <p
           className="text-white font-semibold leading-snug flex-shrink-0"
           style={{
-            fontSize: 'clamp(17px, 4vw, 21px)',
+            fontSize: 'clamp(20px, 5vw, 26px)',
             textShadow: '0 2px 12px rgba(0,0,0,0.6)',
           }}
         >
@@ -114,7 +114,7 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
           <p
             className="text-white/75 leading-relaxed mt-2 overflow-hidden"
             style={{
-              fontSize: 'clamp(12px, 3vw, 14px)',
+              fontSize: 'clamp(14px, 3.5vw, 16px)',
               textShadow: '0 2px 8px rgba(0,0,0,0.5)',
               display: '-webkit-box',
               WebkitLineClamp: 4,
