@@ -57,11 +57,14 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
             src={imageUrl}
             alt={imageAlt}
             fill
-            priority
+            priority={true}
+            loading="eager"
             className="object-cover"
             onLoad={() => setImageLoaded(true)}
+            onError={() => setImageLoaded(true)}
             sizes="(max-width: 768px) 100vw, 420px"
             unoptimized
+            key={story.id}
           />
         </>
       )}
