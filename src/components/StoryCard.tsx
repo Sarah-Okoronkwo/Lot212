@@ -10,37 +10,40 @@ interface StoryCardProps {
 
 export default function StoryCard({ story, isPaused }: StoryCardProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [currentSrc, setCurrentSrc] = useState(story.media_url);
-  const [nextSrc, setNextSrc] = useState<string | null>(null);
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [displaySrc, setDisplaySrc] = useState(story.media_url);
+  const [loadingSrc, setLoadingSrc] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const categoryColor = getCategoryColor(story.category);
   const imageAlt = story.alt_text || story.caption;
 
   useEffect(() => {
     if (story.media_type === 'video') {
-      setCurrentSrc(story.media_url);
+      setDisplaySrc(story.media_url);
+      setIsLoading(false);
       return;
     }
 
-    // Preload next image in background
-    setNextSrc(story.media_url);
-    setIsTransitioning(true);
+    // If same image, do nothing
+    if (story.media_url === displaySrc) return;
+
+    // Start loading new image
+    setLoadingSrc(story.media_url);
+    setIsLoading(true);
 
     const img = new window.Image();
     img.src = story.media_url;
 
     const onLoad = () => {
-      setCurrentSrc(story.media_url);
-      setIsTransitioning(false);
-      setNextSrc(null);
+      setDisplaySrc(story.media_url);
+      setLoadingSrc(null);
+      setIsLoading(false);
     };
 
-    // If already cached, fires immediately
     if (img.complete) {
       onLoad();
     } else {
       img.onload = onLoad;
-      img.onerror = onLoad; // Show image anyway on error
+      img.onerror = onLoad;
     }
 
     return () => {
@@ -61,7 +64,6 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
 
   return (
     <div className="absolute inset-0">
-      {/* Media layer */}
       {story.media_type === 'video' ? (
         <video
           ref={videoRef}
@@ -76,20 +78,37 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
         />
       ) : (
         <>
-          {/* Current image — always visible, no flash */}
+          {/* Current image — always visible */}
           <div
             className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: `url(${currentSrc})` }}
+            style={{
+              backgroundImage: `url(${displaySrc})`,
+              // Blur current image when loading next one
+              filter: isLoading ? 'blur(12px) brightness(0.7)' : 'none',
+              transform: isLoading ? 'scale(1.05)' : 'scale(1)',
+              transition: 'filter 0.2s ease, transform 0.2s ease',
+            }}
           />
 
-          {/* Next image — fades in on top when loaded */}
-          {nextSrc && nextSrc !== currentSrc && (
+          {/* Loading indicator overlay */}
+          {isLoading && (
+            <div
+              className="absolute inset-0 flex items-center justify-center z-10"
+              style={{ background: 'rgba(0,0,0,0.15)' }}
+            >
+              <div
+                className="w-8 h-8 rounded-full border-2 border-white/30 border-t-white animate-spin"
+              />
+            </div>
+          )}
+
+          {/* Next image — fades in when loaded */}
+          {!isLoading && loadingSrc === null && (
             <div
               className="absolute inset-0 bg-cover bg-center"
               style={{
-                backgroundImage: `url(${nextSrc})`,
-                opacity: isTransitioning ? 0 : 1,
-                transition: isTransitioning ? 'none' : 'opacity 0.3s ease',
+                backgroundImage: `url(${displaySrc})`,
+                animation: 'fadeIn 0.3s ease forwards',
               }}
             />
           )}
@@ -108,7 +127,7 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
 
       {/* Content */}
       <div
-        className="absolute left-0 right-0 z-10 px-5 flex flex-col"
+        className="absolute left-0 right-0 z-20 px-5 flex flex-col"
         style={{
           bottom: 'calc(env(safe-area-inset-bottom, 0px) + 150px)',
           maxHeight: '55%',
