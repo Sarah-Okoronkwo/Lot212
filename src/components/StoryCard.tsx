@@ -90,17 +90,6 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
             }}
           />
 
-          {/* Loading indicator overlay */}
-          {isLoading && (
-            <div
-              className="absolute inset-0 flex items-center justify-center z-10"
-              style={{ background: 'rgba(0,0,0,0.15)' }}
-            >
-              <div
-                className="w-8 h-8 rounded-full border-2 border-white/30 border-t-white animate-spin"
-              />
-            </div>
-          )}
 
           {/* Next image — fades in when loaded */}
           {!isLoading && loadingSrc === null && (
