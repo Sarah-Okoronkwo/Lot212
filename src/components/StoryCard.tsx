@@ -1,8 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import Image from 'next/image';
-import { Story, getCategoryColor, getCategoryLabel, getWebPUrl } from '@/types';
+import { Story, getCategoryColor, getCategoryLabel } from '@/types';
 
 interface StoryCardProps {
   story: Story;
@@ -11,17 +10,44 @@ interface StoryCardProps {
 
 export default function StoryCard({ story, isPaused }: StoryCardProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [imageLoaded, setImageLoaded] = useState(false);
+  const [currentSrc, setCurrentSrc] = useState(story.media_url);
+  const [nextSrc, setNextSrc] = useState<string | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const categoryColor = getCategoryColor(story.category);
-
-  // Use alt_text if available, fall back to caption
   const imageAlt = story.alt_text || story.caption;
 
-  const imageUrl = story.media_url;
-
   useEffect(() => {
-    setImageLoaded(false);
-  }, [story.id]);
+    if (story.media_type === 'video') {
+      setCurrentSrc(story.media_url);
+      return;
+    }
+
+    // Preload next image in background
+    setNextSrc(story.media_url);
+    setIsTransitioning(true);
+
+    const img = new window.Image();
+    img.src = story.media_url;
+
+    const onLoad = () => {
+      setCurrentSrc(story.media_url);
+      setIsTransitioning(false);
+      setNextSrc(null);
+    };
+
+    // If already cached, fires immediately
+    if (img.complete) {
+      onLoad();
+    } else {
+      img.onload = onLoad;
+      img.onerror = onLoad; // Show image anyway on error
+    }
+
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+    };
+  }, [story.media_url, story.media_type]);
 
   useEffect(() => {
     if (videoRef.current) {
@@ -34,8 +60,8 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
   }, [isPaused]);
 
   return (
-    <div className="absolute inset-0 story-enter">
-      {/* Media */}
+    <div className="absolute inset-0">
+      {/* Media layer */}
       {story.media_type === 'video' ? (
         <video
           ref={videoRef}
@@ -50,22 +76,23 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
         />
       ) : (
         <>
-          {!imageLoaded && (
-            <div className="absolute inset-0 bg-ink-900 animate-pulse" />
-          )}
-          <Image
-            src={imageUrl}
-            alt={imageAlt}
-            fill
-            priority={true}
-            loading="eager"
-            className="object-cover"
-            onLoad={() => setImageLoaded(true)}
-            onError={() => setImageLoaded(true)}
-            sizes="(max-width: 768px) 100vw, 420px"
-            unoptimized
-            key={story.id}
+          {/* Current image — always visible, no flash */}
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url(${currentSrc})` }}
           />
+
+          {/* Next image — fades in on top when loaded */}
+          {nextSrc && nextSrc !== currentSrc && (
+            <div
+              className="absolute inset-0 bg-cover bg-center"
+              style={{
+                backgroundImage: `url(${nextSrc})`,
+                opacity: isTransitioning ? 0 : 1,
+                transition: isTransitioning ? 'none' : 'opacity 0.3s ease',
+              }}
+            />
+          )}
         </>
       )}
 
