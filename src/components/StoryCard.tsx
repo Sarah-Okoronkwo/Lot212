@@ -23,10 +23,8 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
       return;
     }
 
-    // If same image, do nothing
     if (story.media_url === displaySrc) return;
 
-    // Start loading new image
     setLoadingSrc(story.media_url);
     setIsLoading(true);
 
@@ -63,7 +61,14 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
   }, [isPaused]);
 
   return (
-    <div className="absolute inset-0">
+    <div
+      className="absolute inset-0"
+      onContextMenu={(e) => e.preventDefault()}
+      style={{
+        WebkitTouchCallout: 'none',
+        userSelect: 'none',
+      } as React.CSSProperties}
+    >
       {story.media_type === 'video' ? (
         <video
           ref={videoRef}
@@ -78,27 +83,31 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
         />
       ) : (
         <>
-          {/* Current image — always visible */}
+          {/* Current image — always visible, blurs while next loads */}
           <div
             className="absolute inset-0 bg-cover bg-center"
+            onContextMenu={(e) => e.preventDefault()}
             style={{
               backgroundImage: `url(${displaySrc})`,
-              // Blur current image when loading next one
               filter: isLoading ? 'blur(12px) brightness(0.7)' : 'none',
               transform: isLoading ? 'scale(1.05)' : 'scale(1)',
               transition: 'filter 0.2s ease, transform 0.2s ease',
-            }}
+              WebkitTouchCallout: 'none',
+              userSelect: 'none',
+            } as React.CSSProperties}
           />
-
 
           {/* Next image — fades in when loaded */}
           {!isLoading && loadingSrc === null && (
             <div
               className="absolute inset-0 bg-cover bg-center"
+              onContextMenu={(e) => e.preventDefault()}
               style={{
                 backgroundImage: `url(${displaySrc})`,
                 animation: 'fadeIn 0.3s ease forwards',
-              }}
+                WebkitTouchCallout: 'none',
+                userSelect: 'none',
+              } as React.CSSProperties}
             />
           )}
         </>
