@@ -15,9 +15,7 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const categoryColor = getCategoryColor(story.category);
-  const imageAlt = story.alt_text || story.caption;
 
-  // Reset expanded when story changes
   useEffect(() => {
     setExpanded(false);
   }, [story.id]);
@@ -66,7 +64,7 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
     }
   }, [isPaused]);
 
-  const hasLongSubtext = story.subtext && story.subtext.length > 120;
+  const hasLongSubtext = story.subtext && story.subtext.length > 100;
 
   return (
     <div
@@ -92,7 +90,6 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
         />
       ) : (
         <>
-          {/* Current image — stays visible, blurs while next loads */}
           <div
             className="absolute inset-0 bg-cover bg-center"
             onContextMenu={(e) => e.preventDefault()}
@@ -105,8 +102,6 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
               userSelect: 'none',
             } as React.CSSProperties}
           />
-
-          {/* Next image fades in when loaded */}
           {!isLoading && loadingSrc === null && (
             <div
               className="absolute inset-0 bg-cover bg-center"
@@ -122,47 +117,55 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
         </>
       )}
 
-      {/* ── GRADIENT OVERLAY ──
-          Soft, starts low — image is the hero, text reads clearly */}
+      {/* ── GRADIENT ──
+          Light vignette at top, stronger only at the bottom third
+          so the image stays the hero */}
       <div
         className="absolute inset-0"
         style={{
           background: [
             'linear-gradient(to top,',
-            '  rgba(0,0,0,0.92) 0%,',
-            '  rgba(0,0,0,0.78) 28%,',
-            '  rgba(0,0,0,0.35) 52%,',
-            '  rgba(0,0,0,0.08) 72%,',
+            '  rgba(0,0,0,0.88) 0%,',
+            '  rgba(0,0,0,0.65) 22%,',
+            '  rgba(0,0,0,0.20) 45%,',
+            '  rgba(0,0,0,0.04) 65%,',
             '  transparent 100%)',
           ].join(''),
         }}
       />
 
+      {/* Subtle top vignette so header stays readable */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: 'linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, transparent 25%)',
+        }}
+      />
+
       {/* ── TEXT PANEL ──
-          Sits in the lower-middle: not at the very bottom edge,
-          comfortable reading position, clear hierarchy */}
+          Positioned in the lower portion, not at the very edge */}
       <div
         className="absolute left-0 right-0 flex flex-col"
         style={{
-          bottom: 'calc(env(safe-area-inset-bottom, 16px) + 100px)',
-          padding: '0 24px',
-          maxHeight: expanded ? '70%' : '52%',
-          overflow: 'hidden',
-          transition: 'max-height 0.35s ease',
+          bottom: expanded
+            ? 'calc(env(safe-area-inset-bottom, 16px) + 60px)'
+            : 'calc(env(safe-area-inset-bottom, 16px) + 80px)',
+          padding: '0 22px',
+          transition: 'bottom 0.3s ease',
         }}
       >
-        {/* Category — small, coloured pill */}
-        <div className="mb-3 flex-shrink-0">
+        {/* Category pill */}
+        <div style={{ marginBottom: '10px' }}>
           <span
             style={{
               fontSize: '10px',
               fontFamily: 'var(--font-dm-mono)',
               fontWeight: 600,
-              letterSpacing: '0.1em',
+              letterSpacing: '0.12em',
               textTransform: 'uppercase',
               color: categoryColor,
               background: `${categoryColor}18`,
-              border: `1px solid ${categoryColor}35`,
+              border: `1px solid ${categoryColor}40`,
               borderRadius: '999px',
               padding: '4px 12px',
               display: 'inline-block',
@@ -172,43 +175,42 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
           </span>
         </div>
 
-        {/* Headline — most prominent */}
+        {/* Headline */}
         <p
-          className="text-white flex-shrink-0"
+          className="text-white"
           style={{
-            fontSize: 'clamp(21px, 5.5vw, 28px)',
+            fontSize: 'clamp(22px, 5.5vw, 30px)',
             fontWeight: 700,
-            lineHeight: 1.25,
-            letterSpacing: '-0.01em',
-            textShadow: '0 1px 8px rgba(0,0,0,0.4)',
-            marginBottom: story.subtext ? '10px' : '0',
+            lineHeight: 1.2,
+            letterSpacing: '-0.02em',
+            textShadow: '0 1px 10px rgba(0,0,0,0.5)',
+            marginBottom: story.subtext ? '10px' : '12px',
           }}
         >
           {story.caption}
         </p>
 
-        {/* Body text — readable, not cramped */}
+        {/* Body text */}
         {story.subtext && (
-          <>
+          <div style={{ marginBottom: '10px' }}>
             <p
               style={{
                 fontSize: 'clamp(14px, 3.8vw, 16px)',
                 fontWeight: 400,
-                lineHeight: 1.6,
-                color: 'rgba(255,255,255,0.80)',
+                lineHeight: 1.65,
+                color: 'rgba(255,255,255,0.82)',
                 textShadow: '0 1px 6px rgba(0,0,0,0.4)',
                 display: '-webkit-box',
                 WebkitLineClamp: expanded ? 999 : 3,
                 WebkitBoxOrient: 'vertical',
                 overflow: 'hidden',
-                marginBottom: '10px',
-                flexShrink: 0,
+                transition: 'all 0.3s ease',
               } as React.CSSProperties}
             >
               {story.subtext}
             </p>
 
-            {/* Read more — only when text is long */}
+            {/* Read more button */}
             {hasLongSubtext && !expanded && (
               <button
                 onPointerDown={(e) => {
@@ -218,33 +220,54 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
                 style={{
                   background: 'none',
                   border: 'none',
-                  padding: 0,
+                  padding: '6px 0 0 0',
                   cursor: 'pointer',
                   fontSize: '13px',
                   fontWeight: 600,
-                  color: 'rgba(255,255,255,0.55)',
+                  color: 'rgba(255,255,255,0.5)',
                   fontFamily: 'var(--font-dm-mono)',
                   letterSpacing: '0.04em',
-                  marginBottom: '8px',
-                  flexShrink: 0,
-                  alignSelf: 'flex-start',
+                  display: 'block',
                 }}
               >
                 Read more ↓
               </button>
             )}
-          </>
+
+            {/* Collapse button */}
+            {expanded && (
+              <button
+                onPointerDown={(e) => {
+                  e.stopPropagation();
+                  setExpanded(false);
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  padding: '6px 0 0 0',
+                  cursor: 'pointer',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  color: 'rgba(255,255,255,0.5)',
+                  fontFamily: 'var(--font-dm-mono)',
+                  letterSpacing: '0.04em',
+                  display: 'block',
+                }}
+              >
+                Show less ↑
+              </button>
+            )}
+          </div>
         )}
 
-        {/* Tap to continue — very subtle, sits below body */}
+        {/* Tap hint */}
         <p
-          className="flex-shrink-0"
           style={{
             fontSize: '11px',
-            color: 'rgba(255,255,255,0.28)',
+            color: 'rgba(255,255,255,0.30)',
             fontFamily: 'var(--font-dm-mono)',
-            letterSpacing: '0.06em',
-            marginTop: '6px',
+            letterSpacing: '0.05em',
+            marginTop: '2px',
           }}
         >
           tap to continue →
