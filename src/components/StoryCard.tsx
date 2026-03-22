@@ -14,11 +14,22 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
   const [loadingSrc, setLoadingSrc] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [isTruncated, setIsTruncated] = useState(false);
+  const subtextRef = useRef<HTMLParagraphElement>(null);
   const categoryColor = getCategoryColor(story.category);
 
   useEffect(() => {
     setExpanded(false);
+    setIsTruncated(false);
   }, [story.id]);
+
+  // Detect if text is actually being cut off
+  useEffect(() => {
+    if (!subtextRef.current || expanded) return;
+    const el = subtextRef.current;
+    // scrollHeight > clientHeight means text is overflowing (cut off)
+    setIsTruncated(el.scrollHeight > el.clientHeight + 2);
+  }, [story.subtext, expanded]);
 
   useEffect(() => {
     if (story.media_type === 'video') {
@@ -26,54 +37,46 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
       setIsLoading(false);
       return;
     }
-
     if (story.media_url === displaySrc) return;
-
     setLoadingSrc(story.media_url);
     setIsLoading(true);
-
     const img = new window.Image();
     img.src = story.media_url;
-
     const onLoad = () => {
       setDisplaySrc(story.media_url);
       setLoadingSrc(null);
       setIsLoading(false);
     };
-
-    if (img.complete) {
-      onLoad();
-    } else {
-      img.onload = onLoad;
-      img.onerror = onLoad;
-    }
-
-    return () => {
-      img.onload = null;
-      img.onerror = null;
-    };
+    if (img.complete) { onLoad(); }
+    else { img.onload = onLoad; img.onerror = onLoad; }
+    return () => { img.onload = null; img.onerror = null; };
   }, [story.media_url, story.media_type]);
 
   useEffect(() => {
     if (videoRef.current) {
-      if (isPaused) {
-        videoRef.current.pause();
-      } else {
-        videoRef.current.play().catch(() => {});
-      }
+      if (isPaused) { videoRef.current.pause(); }
+      else { videoRef.current.play().catch(() => {}); }
     }
   }, [isPaused]);
 
-  const hasLongSubtext = story.subtext && story.subtext.length > 100;
+  const handleReadMore = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setExpanded(true);
+    setIsTruncated(false);
+  };
+
+  const handleShowLess = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setExpanded(false);
+  };
 
   return (
     <div
       className="absolute inset-0"
       onContextMenu={(e) => e.preventDefault()}
-      style={{
-        WebkitTouchCallout: 'none',
-        userSelect: 'none',
-      } as React.CSSProperties}
+      style={{ WebkitTouchCallout: 'none', userSelect: 'none' } as React.CSSProperties}
     >
       {/* ── MEDIA ── */}
       {story.media_type === 'video' ? (
@@ -81,11 +84,7 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
           ref={videoRef}
           src={story.media_url}
           className="absolute inset-0 w-full h-full object-cover"
-          autoPlay
-          muted
-          playsInline
-          preload="auto"
-          loop={false}
+          autoPlay muted playsInline preload="auto" loop={false}
           style={{ background: '#000' }}
         />
       ) : (
@@ -117,56 +116,50 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
         </>
       )}
 
-      {/* ── GRADIENT ──
-          Only darkens the bottom 40% — image is fully visible above that */}
+      {/* ── GRADIENT — stronger for readability ── */}
       <div
         className="absolute inset-0"
         style={{
           background: [
             'linear-gradient(to top,',
-            '  rgba(0,0,0,0.93) 0%,',
-            '  rgba(0,0,0,0.75) 18%,',
-            '  rgba(0,0,0,0.40) 32%,',
-            '  rgba(0,0,0,0.10) 45%,',
-            '  transparent 58%)',
+            '  rgba(0,0,0,0.96) 0%,',
+            '  rgba(0,0,0,0.82) 22%,',
+            '  rgba(0,0,0,0.50) 40%,',
+            '  rgba(0,0,0,0.15) 58%,',
+            '  transparent 72%)',
           ].join(''),
         }}
       />
 
-      {/* Subtle top vignette for header legibility */}
+      {/* Top vignette */}
       <div
         className="absolute inset-0"
-        style={{
-          background: 'linear-gradient(to bottom, rgba(0,0,0,0.40) 0%, transparent 22%)',
-        }}
+        style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, transparent 22%)' }}
       />
 
       {/* ── TEXT PANEL ── */}
       <div
         className="absolute left-0 right-0 flex flex-col"
         style={{
-          /* Sits well above browser chrome on all iPhones */
           bottom: 'calc(env(safe-area-inset-bottom, 20px) + 110px)',
           padding: '0 24px',
         }}
       >
         {/* Category pill */}
         <div style={{ marginBottom: '8px' }}>
-          <span
-            style={{
-              fontSize: '10px',
-              fontFamily: 'var(--font-dm-mono)',
-              fontWeight: 600,
-              letterSpacing: '0.12em',
-              textTransform: 'uppercase',
-              color: categoryColor,
-              background: `${categoryColor}20`,
-              border: `1px solid ${categoryColor}45`,
-              borderRadius: '999px',
-              padding: '4px 12px',
-              display: 'inline-block',
-            }}
-          >
+          <span style={{
+            fontSize: '10px',
+            fontFamily: 'var(--font-dm-mono)',
+            fontWeight: 600,
+            letterSpacing: '0.12em',
+            textTransform: 'uppercase',
+            color: categoryColor,
+            background: `${categoryColor}20`,
+            border: `1px solid ${categoryColor}45`,
+            borderRadius: '999px',
+            padding: '4px 12px',
+            display: 'inline-block',
+          }}>
             {getCategoryLabel(story.category)}
           </span>
         </div>
@@ -179,7 +172,7 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
             fontWeight: 700,
             lineHeight: 1.2,
             letterSpacing: '-0.02em',
-            textShadow: '0 2px 12px rgba(0,0,0,0.6)',
+            textShadow: '0 2px 12px rgba(0,0,0,0.7)',
             marginBottom: story.subtext ? '10px' : '14px',
           }}
         >
@@ -190,12 +183,13 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
         {story.subtext && (
           <div style={{ marginBottom: '12px' }}>
             <p
+              ref={subtextRef}
               style={{
                 fontSize: 'clamp(14px, 3.8vw, 16px)',
                 fontWeight: 400,
                 lineHeight: 1.65,
-                color: 'rgba(255,255,255,0.85)',
-                textShadow: '0 1px 8px rgba(0,0,0,0.5)',
+                color: 'rgba(255,255,255,0.88)',
+                textShadow: '0 1px 8px rgba(0,0,0,0.6)',
                 display: '-webkit-box',
                 WebkitLineClamp: expanded ? 999 : 3,
                 WebkitBoxOrient: 'vertical',
@@ -205,28 +199,29 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
               {story.subtext}
             </p>
 
-            {/* Read more */}
-            {hasLongSubtext && !expanded && (
+            {/* Read more — only when text is actually cut off */}
+            {isTruncated && !expanded && (
               <button
-                onPointerDown={(e) => {
-                  e.stopPropagation();
-                  setExpanded(true);
-                }}
+                onClick={handleReadMore}
+                onTouchEnd={handleReadMore}
                 style={{
-                  background: 'rgba(255,255,255,0.12)',
-                  border: '1px solid rgba(255,255,255,0.2)',
+                  background: 'rgba(255,255,255,0.15)',
+                  border: '1px solid rgba(255,255,255,0.25)',
                   borderRadius: '999px',
-                  padding: '5px 14px',
+                  padding: '5px 16px',
                   marginTop: '10px',
                   cursor: 'pointer',
                   fontSize: '12px',
                   fontWeight: 600,
-                  color: 'rgba(255,255,255,0.80)',
+                  color: 'rgba(255,255,255,0.90)',
                   fontFamily: 'var(--font-dm-mono)',
                   letterSpacing: '0.04em',
                   display: 'inline-block',
                   backdropFilter: 'blur(8px)',
-                }}
+                  WebkitBackdropFilter: 'blur(8px)',
+                  zIndex: 50,
+                  position: 'relative',
+                } as React.CSSProperties}
               >
                 Read more ↓
               </button>
@@ -235,25 +230,26 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
             {/* Show less */}
             {expanded && (
               <button
-                onPointerDown={(e) => {
-                  e.stopPropagation();
-                  setExpanded(false);
-                }}
+                onClick={handleShowLess}
+                onTouchEnd={handleShowLess}
                 style={{
-                  background: 'rgba(255,255,255,0.12)',
-                  border: '1px solid rgba(255,255,255,0.2)',
+                  background: 'rgba(255,255,255,0.15)',
+                  border: '1px solid rgba(255,255,255,0.25)',
                   borderRadius: '999px',
-                  padding: '5px 14px',
+                  padding: '5px 16px',
                   marginTop: '10px',
                   cursor: 'pointer',
                   fontSize: '12px',
                   fontWeight: 600,
-                  color: 'rgba(255,255,255,0.80)',
+                  color: 'rgba(255,255,255,0.90)',
                   fontFamily: 'var(--font-dm-mono)',
                   letterSpacing: '0.04em',
                   display: 'inline-block',
                   backdropFilter: 'blur(8px)',
-                }}
+                  WebkitBackdropFilter: 'blur(8px)',
+                  zIndex: 50,
+                  position: 'relative',
+                } as React.CSSProperties}
               >
                 Show less ↑
               </button>
@@ -262,14 +258,12 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
         )}
 
         {/* Tap hint */}
-        <p
-          style={{
-            fontSize: '11px',
-            color: 'rgba(255,255,255,0.32)',
-            fontFamily: 'var(--font-dm-mono)',
-            letterSpacing: '0.05em',
-          }}
-        >
+        <p style={{
+          fontSize: '11px',
+          color: 'rgba(255,255,255,0.32)',
+          fontFamily: 'var(--font-dm-mono)',
+          letterSpacing: '0.05em',
+        }}>
           tap to continue →
         </p>
       </div>
