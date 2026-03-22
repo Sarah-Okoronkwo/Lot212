@@ -118,44 +118,40 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
       )}
 
       {/* ── GRADIENT ──
-          Light vignette at top, stronger only at the bottom third
-          so the image stays the hero */}
+          Only darkens the bottom 40% — image is fully visible above that */}
       <div
         className="absolute inset-0"
         style={{
           background: [
             'linear-gradient(to top,',
-            '  rgba(0,0,0,0.88) 0%,',
-            '  rgba(0,0,0,0.65) 22%,',
-            '  rgba(0,0,0,0.20) 45%,',
-            '  rgba(0,0,0,0.04) 65%,',
-            '  transparent 100%)',
+            '  rgba(0,0,0,0.93) 0%,',
+            '  rgba(0,0,0,0.75) 18%,',
+            '  rgba(0,0,0,0.40) 32%,',
+            '  rgba(0,0,0,0.10) 45%,',
+            '  transparent 58%)',
           ].join(''),
         }}
       />
 
-      {/* Subtle top vignette so header stays readable */}
+      {/* Subtle top vignette for header legibility */}
       <div
         className="absolute inset-0"
         style={{
-          background: 'linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, transparent 25%)',
+          background: 'linear-gradient(to bottom, rgba(0,0,0,0.40) 0%, transparent 22%)',
         }}
       />
 
-      {/* ── TEXT PANEL ──
-          Positioned in the lower portion, not at the very edge */}
+      {/* ── TEXT PANEL ── */}
       <div
         className="absolute left-0 right-0 flex flex-col"
         style={{
-          bottom: expanded
-            ? 'calc(env(safe-area-inset-bottom, 16px) + 60px)'
-            : 'calc(env(safe-area-inset-bottom, 16px) + 80px)',
-          padding: '0 22px',
-          transition: 'bottom 0.3s ease',
+          /* Sits well above browser chrome on all iPhones */
+          bottom: 'calc(env(safe-area-inset-bottom, 20px) + 110px)',
+          padding: '0 24px',
         }}
       >
         {/* Category pill */}
-        <div style={{ marginBottom: '10px' }}>
+        <div style={{ marginBottom: '8px' }}>
           <span
             style={{
               fontSize: '10px',
@@ -164,8 +160,8 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
               letterSpacing: '0.12em',
               textTransform: 'uppercase',
               color: categoryColor,
-              background: `${categoryColor}18`,
-              border: `1px solid ${categoryColor}40`,
+              background: `${categoryColor}20`,
+              border: `1px solid ${categoryColor}45`,
               borderRadius: '999px',
               padding: '4px 12px',
               display: 'inline-block',
@@ -183,8 +179,8 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
             fontWeight: 700,
             lineHeight: 1.2,
             letterSpacing: '-0.02em',
-            textShadow: '0 1px 10px rgba(0,0,0,0.5)',
-            marginBottom: story.subtext ? '10px' : '12px',
+            textShadow: '0 2px 12px rgba(0,0,0,0.6)',
+            marginBottom: story.subtext ? '10px' : '14px',
           }}
         >
           {story.caption}
@@ -192,25 +188,24 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
 
         {/* Body text */}
         {story.subtext && (
-          <div style={{ marginBottom: '10px' }}>
+          <div style={{ marginBottom: '12px' }}>
             <p
               style={{
                 fontSize: 'clamp(14px, 3.8vw, 16px)',
                 fontWeight: 400,
                 lineHeight: 1.65,
-                color: 'rgba(255,255,255,0.82)',
-                textShadow: '0 1px 6px rgba(0,0,0,0.4)',
+                color: 'rgba(255,255,255,0.85)',
+                textShadow: '0 1px 8px rgba(0,0,0,0.5)',
                 display: '-webkit-box',
                 WebkitLineClamp: expanded ? 999 : 3,
                 WebkitBoxOrient: 'vertical',
                 overflow: 'hidden',
-                transition: 'all 0.3s ease',
               } as React.CSSProperties}
             >
               {story.subtext}
             </p>
 
-            {/* Read more button */}
+            {/* Read more */}
             {hasLongSubtext && !expanded && (
               <button
                 onPointerDown={(e) => {
@@ -218,23 +213,26 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
                   setExpanded(true);
                 }}
                 style={{
-                  background: 'none',
-                  border: 'none',
-                  padding: '6px 0 0 0',
+                  background: 'rgba(255,255,255,0.12)',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  borderRadius: '999px',
+                  padding: '5px 14px',
+                  marginTop: '10px',
                   cursor: 'pointer',
-                  fontSize: '13px',
+                  fontSize: '12px',
                   fontWeight: 600,
-                  color: 'rgba(255,255,255,0.5)',
+                  color: 'rgba(255,255,255,0.80)',
                   fontFamily: 'var(--font-dm-mono)',
                   letterSpacing: '0.04em',
-                  display: 'block',
+                  display: 'inline-block',
+                  backdropFilter: 'blur(8px)',
                 }}
               >
                 Read more ↓
               </button>
             )}
 
-            {/* Collapse button */}
+            {/* Show less */}
             {expanded && (
               <button
                 onPointerDown={(e) => {
@@ -242,16 +240,19 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
                   setExpanded(false);
                 }}
                 style={{
-                  background: 'none',
-                  border: 'none',
-                  padding: '6px 0 0 0',
+                  background: 'rgba(255,255,255,0.12)',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  borderRadius: '999px',
+                  padding: '5px 14px',
+                  marginTop: '10px',
                   cursor: 'pointer',
-                  fontSize: '13px',
+                  fontSize: '12px',
                   fontWeight: 600,
-                  color: 'rgba(255,255,255,0.5)',
+                  color: 'rgba(255,255,255,0.80)',
                   fontFamily: 'var(--font-dm-mono)',
                   letterSpacing: '0.04em',
-                  display: 'block',
+                  display: 'inline-block',
+                  backdropFilter: 'blur(8px)',
                 }}
               >
                 Show less ↑
@@ -264,10 +265,9 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
         <p
           style={{
             fontSize: '11px',
-            color: 'rgba(255,255,255,0.30)',
+            color: 'rgba(255,255,255,0.32)',
             fontFamily: 'var(--font-dm-mono)',
             letterSpacing: '0.05em',
-            marginTop: '2px',
           }}
         >
           tap to continue →
