@@ -7,7 +7,7 @@ import StoryCard from './StoryCard';
 import ProgressBars from './ProgressBars';
 import TapZones from './TapZones';
 
-const STORY_DURATION_MS = 7000;
+const VIDEO_DURATION_MS = 7000;
 
 interface ArchiveStoryViewerProps {
   stories: Story[];
@@ -27,7 +27,6 @@ function formatDateLabel(dateStr: string): string {
 
   if (isSameDay(date, today)) return 'Today';
   if (isSameDay(date, yesterday)) return 'Yesterday';
-
   return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
 }
 
@@ -39,6 +38,9 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const touchStartY = useRef(0);
   const touchStartX = useRef(0);
+
+  const currentStory = stories[currentIndex];
+  const isVideo = currentStory?.media_type === 'video';
 
   const goToNext = () => {
     if (currentIndex < stories.length - 1) {
@@ -56,13 +58,13 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
     }
   };
 
-  // Auto-advance timer — clean, no elapsed accumulation
+  // Auto-advance ONLY for videos
   useEffect(() => {
-    if (isPaused) return;
+    if (!isVideo || isPaused) return;
 
     timerRef.current = setTimeout(() => {
       goToNext();
-    }, STORY_DURATION_MS);
+    }, VIDEO_DURATION_MS);
 
     return () => {
       if (timerRef.current) {
@@ -70,7 +72,7 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
         timerRef.current = null;
       }
     };
-  }, [currentIndex, isPaused]);
+  }, [currentIndex, isPaused, isVideo]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -92,12 +94,8 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
   const handleTouchEnd = (e: React.TouchEvent) => {
     const dy = e.changedTouches[0].clientY - touchStartY.current;
     const dx = Math.abs(e.changedTouches[0].clientX - touchStartX.current);
-    if (dy > 80 && dx < 60) {
-      router.back();
-    }
+    if (dy > 80 && dx < 60) router.back();
   };
-
-  const currentStory = stories[currentIndex];
 
   return (
     <div
@@ -110,9 +108,7 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
       <div
         className="absolute inset-0 hidden md:block"
         style={{
-          backgroundImage: currentStory?.media_type !== 'video'
-            ? `url(${currentStory?.media_url})`
-            : 'none',
+          backgroundImage: currentStory?.media_type !== 'video' ? `url(${currentStory?.media_url})` : 'none',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundColor: '#000',
@@ -127,75 +123,59 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
           style={{ boxShadow: '0 32px 80px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.05)' }}
         >
           {currentStory && (
-            <StoryCard story={currentStory} isPaused={isPaused} />
+            <StoryCard
+              story={currentStory}
+              isPaused={isPaused}
+              isFirst={currentIndex === 0}
+            />
           )}
 
           {/* Top overlay */}
           <div
             className="absolute top-0 left-0 right-0 z-20 pb-8 pt-safe"
-            style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, transparent 100%)' }}
+            style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, transparent 100%)' }}
           >
             <div className="px-3 pt-3">
               <ProgressBars
                 total={stories.length}
                 current={currentIndex}
-                duration={STORY_DURATION_MS}
+                duration={VIDEO_DURATION_MS}
                 isPaused={isPaused}
+                isWaitingForTap={!isVideo}
                 onComplete={goToNext}
               />
             </div>
 
             {/* Header row */}
             <div className="flex items-center gap-3 px-4 pt-3">
-              {/* Back button */}
               <button
                 onClick={() => router.back()}
                 className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all active:scale-90"
-                style={{
-                  background: 'rgba(255,255,255,0.15)',
-                  backdropFilter: 'blur(8px)',
-                  position: 'relative',
-                  zIndex: 50,
-                }}
+                style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)', position: 'relative', zIndex: 50 }}
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M19 12H5M12 5l-7 7 7 7" />
                 </svg>
               </button>
 
-              {/* Logo */}
               <div
                 className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
-                style={{
-                  background: 'var(--color-accent, #e8ff47)',
-                  color: '#18181f',
-                  fontFamily: 'var(--font-dm-mono)',
-                }}
+                style={{ background: 'var(--color-accent, #e8ff47)', color: '#18181f', fontFamily: 'var(--font-dm-mono)' }}
               >
                 212
               </div>
 
-              {/* Date + counter */}
               <div className="flex-1">
-                <p className="text-white text-sm font-semibold leading-tight">
-                  {formatDateLabel(date)}
-                </p>
+                <p className="text-white text-sm font-semibold leading-tight">{formatDateLabel(date)}</p>
                 <p className="text-white/50 text-xs" style={{ fontFamily: 'var(--font-dm-mono)' }}>
                   {currentIndex + 1} / {stories.length}
                 </p>
               </div>
 
-              {/* Close button */}
               <button
                 onClick={() => router.back()}
                 className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all active:scale-90"
-                style={{
-                  background: 'rgba(0,0,0,0.35)',
-                  backdropFilter: 'blur(8px)',
-                  border: '1px solid rgba(255,255,255,0.15)',
-                  position: 'relative',
-                  zIndex: 50,
-                }}
+                style={{ background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.15)', position: 'relative', zIndex: 50 }}
               >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
                   <path d="M18 6L6 18M6 6l12 12" />
@@ -204,7 +184,6 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
             </div>
           </div>
 
-          {/* Tap zones start below header */}
           <TapZones
             onTapLeft={goToPrev}
             onTapRight={goToNext}

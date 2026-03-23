@@ -7,12 +7,9 @@ export const revalidate = 0;
 
 export default async function AdminPage() {
   const supabase = await createClient();
-
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user) {
-    redirect('/admin/login');
-  }
+  if (!user) redirect('/admin/login');
 
   const { data } = await supabase
     .from('stories')

@@ -1,70 +1,20 @@
 'use client';
 
-import { useEffect, useRef, useCallback } from 'react';
-
 interface ProgressBarsProps {
   total: number;
   current: number;
   duration: number;
   isPaused: boolean;
+  isWaitingForTap: boolean;
   onComplete: () => void;
 }
 
 export default function ProgressBars({
   total,
   current,
-  duration,
   isPaused,
-  onComplete,
+  isWaitingForTap,
 }: ProgressBarsProps) {
-  const animationRef = useRef<Animation | null>(null);
-  const barRef = useRef<HTMLDivElement | null>(null);
-  const startTimeRef = useRef<number | null>(null);
-  const elapsedRef = useRef<number>(0);
-
-  const startAnimation = useCallback(() => {
-    if (!barRef.current) return;
-
-    const remaining = duration - elapsedRef.current;
-
-    animationRef.current = barRef.current.animate(
-      [{ width: `${(elapsedRef.current / duration) * 100}%` }, { width: '100%' }],
-      {
-        duration: remaining,
-        easing: 'linear',
-        fill: 'forwards',
-      }
-    );
-
-    animationRef.current.onfinish = () => {
-      elapsedRef.current = 0;
-      onComplete();
-    };
-
-    startTimeRef.current = Date.now();
-  }, [duration, onComplete]);
-
-  useEffect(() => {
-    elapsedRef.current = 0;
-    startAnimation();
-
-    return () => {
-      animationRef.current?.cancel();
-    };
-  }, [current, startAnimation]);
-
-  useEffect(() => {
-    if (!animationRef.current) return;
-
-    if (isPaused) {
-      elapsedRef.current += startTimeRef.current ? Date.now() - startTimeRef.current : 0;
-      animationRef.current.pause();
-    } else {
-      animationRef.current.play();
-      startTimeRef.current = Date.now();
-    }
-  }, [isPaused]);
-
   return (
     <div className="flex gap-1 w-full">
       {Array.from({ length: total }).map((_, index) => (
@@ -74,14 +24,18 @@ export default function ProgressBars({
           style={{ background: 'rgba(255,255,255,0.25)' }}
         >
           {index < current ? (
-            // Completed segment
+            // Completed segment — fully filled
             <div className="w-full h-full bg-white rounded-full" />
           ) : index === current ? (
-            // Active segment
+            // Active segment — filled only when not waiting for tap
             <div
-              ref={index === current ? barRef : null}
               className="h-full bg-white rounded-full"
-              style={{ width: '0%' }}
+              style={{
+                width: isWaitingForTap || isPaused ? '0%' : '0%',
+                // No animation — stays at 0% until user taps
+                // When they tap, this segment completes instantly
+                transition: 'none',
+              }}
             />
           ) : null}
         </div>

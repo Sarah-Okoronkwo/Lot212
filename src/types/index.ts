@@ -12,35 +12,29 @@ export interface Story {
   is_active: boolean;
 }
 
-export interface StoryUploadData {
-  caption: string;
-  category: string;
-  file: File;
-}
-
 export type StoryCategory =
-  | 'breaking'
-  | 'politics'
-  | 'technology'
-  | 'sports'
-  | 'entertainment'
-  | 'world'
-  | 'business'
-  | 'health'
+  | 'history'
+  | 'culture'
   | 'science'
+  | 'food'
+  | 'crime'
+  | 'world'
+  | 'technology'
+  | 'business'
+  | 'entertainment'
   | 'lifestyle';
 
 export const STORY_CATEGORIES: { value: StoryCategory; label: string; color: string }[] = [
-  { value: 'breaking', label: 'Breaking', color: '#ff3b3b' },
-  { value: 'politics', label: 'Politics', color: '#0070f3' },
-  { value: 'technology', label: 'Technology', color: '#8b5cf6' },
-  { value: 'sports', label: 'Sports', color: '#00c853' },
+  { value: 'history',       label: 'History',       color: '#c9a84c' },
+  { value: 'culture',       label: 'Culture',       color: '#a78bfa' },
+  { value: 'science',       label: 'Science',       color: '#22d3ee' },
+  { value: 'food',          label: 'Food',          color: '#f97316' },
+  { value: 'crime',         label: 'Crime',         color: '#ef4444' },
+  { value: 'world',         label: 'World',         color: '#06b6d4' },
+  { value: 'technology',    label: 'Technology',    color: '#8b5cf6' },
+  { value: 'business',      label: 'Business',      color: '#eab308' },
   { value: 'entertainment', label: 'Entertainment', color: '#ff6b00' },
-  { value: 'world', label: 'World', color: '#06b6d4' },
-  { value: 'business', label: 'Business', color: '#eab308' },
-  { value: 'health', label: 'Health', color: '#ec4899' },
-  { value: 'science', label: 'Science', color: '#14b8a6' },
-  { value: 'lifestyle', label: 'Lifestyle', color: '#a855f7' },
+  { value: 'lifestyle',     label: 'Lifestyle',     color: '#a855f7' },
 ];
 
 export function getCategoryColor(category: string): string {
@@ -65,6 +59,5 @@ export function generateSlug(caption: string): string {
 }
 
 export function getWebPUrl(mediaUrl: string, width?: number): string {
-  // Return original URL unchanged — WebP transform not reliable on free plan
   return mediaUrl;
 }

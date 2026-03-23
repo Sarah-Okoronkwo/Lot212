@@ -6,9 +6,10 @@ import { Story, getCategoryColor, getCategoryLabel } from '@/types';
 interface StoryCardProps {
   story: Story;
   isPaused: boolean;
+  isFirst: boolean; // Caption only required on first slide
 }
 
-export default function StoryCard({ story, isPaused }: StoryCardProps) {
+export default function StoryCard({ story, isPaused, isFirst }: StoryCardProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [displaySrc, setDisplaySrc] = useState(story.media_url);
   const [loadingSrc, setLoadingSrc] = useState<string | null>(null);
@@ -23,11 +24,10 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
     setIsTruncated(false);
   }, [story.id]);
 
-  // Detect if text is actually being cut off
+  // Detect actual text overflow
   useEffect(() => {
     if (!subtextRef.current || expanded) return;
     const el = subtextRef.current;
-    // scrollHeight > clientHeight means text is overflowing (cut off)
     setIsTruncated(el.scrollHeight > el.clientHeight + 2);
   }, [story.subtext, expanded]);
 
@@ -71,6 +71,10 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
     e.stopPropagation();
     setExpanded(false);
   };
+
+  // Show text panel only on first slide OR if there's a caption/subtext
+  const hasText = isFirst ? (story.caption || story.subtext) : (story.caption || story.subtext);
+  const showCaption = isFirst || story.caption;
 
   return (
     <div
@@ -116,20 +120,30 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
         </>
       )}
 
-      {/* ── GRADIENT — stronger for readability ── */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background: [
-            'linear-gradient(to top,',
-            '  rgba(0,0,0,0.96) 0%,',
-            '  rgba(0,0,0,0.82) 22%,',
-            '  rgba(0,0,0,0.50) 40%,',
-            '  rgba(0,0,0,0.15) 58%,',
-            '  transparent 72%)',
-          ].join(''),
-        }}
-      />
+      {/* ── GRADIENT ── Only show heavier gradient when there's text */}
+      {hasText ? (
+        <div
+          className="absolute inset-0"
+          style={{
+            background: [
+              'linear-gradient(to top,',
+              '  rgba(0,0,0,0.96) 0%,',
+              '  rgba(0,0,0,0.82) 22%,',
+              '  rgba(0,0,0,0.50) 40%,',
+              '  rgba(0,0,0,0.15) 58%,',
+              '  transparent 72%)',
+            ].join(''),
+          }}
+        />
+      ) : (
+        // Minimal gradient when no text — just enough for header
+        <div
+          className="absolute inset-0"
+          style={{
+            background: 'linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, transparent 20%)',
+          }}
+        />
+      )}
 
       {/* Top vignette */}
       <div
@@ -138,134 +152,161 @@ export default function StoryCard({ story, isPaused }: StoryCardProps) {
       />
 
       {/* ── TEXT PANEL ── */}
-      <div
-        className="absolute left-0 right-0 flex flex-col"
-        style={{
-          bottom: 'calc(env(safe-area-inset-bottom, 20px) + 110px)',
-          padding: '0 24px',
-        }}
-      >
-        {/* Category pill */}
-        <div style={{ marginBottom: '8px' }}>
-          <span style={{
-            fontSize: '10px',
-            fontFamily: 'var(--font-dm-mono)',
-            fontWeight: 600,
-            letterSpacing: '0.12em',
-            textTransform: 'uppercase',
-            color: categoryColor,
-            background: `${categoryColor}20`,
-            border: `1px solid ${categoryColor}45`,
-            borderRadius: '999px',
-            padding: '4px 12px',
-            display: 'inline-block',
-          }}>
-            {getCategoryLabel(story.category)}
-          </span>
-        </div>
-
-        {/* Headline */}
-        <p
-          className="text-white"
+      {hasText && (
+        <div
+          className="absolute left-0 right-0 flex flex-col"
           style={{
-            fontSize: 'clamp(22px, 5.5vw, 30px)',
-            fontWeight: 700,
-            lineHeight: 1.2,
-            letterSpacing: '-0.02em',
-            textShadow: '0 2px 12px rgba(0,0,0,0.7)',
-            marginBottom: story.subtext ? '10px' : '14px',
+            bottom: 'calc(env(safe-area-inset-bottom, 20px) + 110px)',
+            padding: '0 24px',
           }}
         >
-          {story.caption}
-        </p>
+          {/* Category pill — only on first slide */}
+          {isFirst && (
+            <div style={{ marginBottom: '8px' }}>
+              <span style={{
+                fontSize: '10px',
+                fontFamily: 'var(--font-dm-mono)',
+                fontWeight: 600,
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                color: categoryColor,
+                background: `${categoryColor}20`,
+                border: `1px solid ${categoryColor}45`,
+                borderRadius: '999px',
+                padding: '4px 12px',
+                display: 'inline-block',
+              }}>
+                {getCategoryLabel(story.category)}
+              </span>
+            </div>
+          )}
 
-        {/* Body text */}
-        {story.subtext && (
-          <div style={{ marginBottom: '12px' }}>
+          {/* Headline — shown on first slide, or if caption exists on other slides */}
+          {showCaption && story.caption && (
             <p
-              ref={subtextRef}
+              className="text-white"
               style={{
-                fontSize: 'clamp(14px, 3.8vw, 16px)',
-                fontWeight: 400,
-                lineHeight: 1.65,
-                color: 'rgba(255,255,255,0.88)',
-                textShadow: '0 1px 8px rgba(0,0,0,0.6)',
-                display: '-webkit-box',
-                WebkitLineClamp: expanded ? 999 : 3,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-              } as React.CSSProperties}
+                fontSize: 'clamp(22px, 5.5vw, 30px)',
+                fontWeight: 700,
+                lineHeight: 1.2,
+                letterSpacing: '-0.02em',
+                textShadow: '0 2px 12px rgba(0,0,0,0.7)',
+                marginBottom: story.subtext ? '10px' : '14px',
+              }}
             >
-              {story.subtext}
+              {story.caption}
             </p>
+          )}
 
-            {/* Read more — only when text is actually cut off */}
-            {isTruncated && !expanded && (
-              <button
-                onClick={handleReadMore}
-                onTouchEnd={handleReadMore}
+          {/* Body text */}
+          {story.subtext && (
+            <div style={{ marginBottom: '12px' }}>
+              <p
+                ref={subtextRef}
                 style={{
-                  background: 'rgba(255,255,255,0.15)',
-                  border: '1px solid rgba(255,255,255,0.25)',
-                  borderRadius: '999px',
-                  padding: '5px 16px',
-                  marginTop: '10px',
-                  cursor: 'pointer',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  color: 'rgba(255,255,255,0.90)',
-                  fontFamily: 'var(--font-dm-mono)',
-                  letterSpacing: '0.04em',
-                  display: 'inline-block',
-                  backdropFilter: 'blur(8px)',
-                  WebkitBackdropFilter: 'blur(8px)',
-                  zIndex: 50,
-                  position: 'relative',
+                  fontSize: 'clamp(14px, 3.8vw, 16px)',
+                  fontWeight: 400,
+                  lineHeight: 1.65,
+                  color: 'rgba(255,255,255,0.88)',
+                  textShadow: '0 1px 8px rgba(0,0,0,0.6)',
+                  display: '-webkit-box',
+                  WebkitLineClamp: expanded ? 999 : 3,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
                 } as React.CSSProperties}
               >
-                Read more ↓
-              </button>
-            )}
+                {story.subtext}
+              </p>
 
-            {/* Show less */}
-            {expanded && (
-              <button
-                onClick={handleShowLess}
-                onTouchEnd={handleShowLess}
-                style={{
-                  background: 'rgba(255,255,255,0.15)',
-                  border: '1px solid rgba(255,255,255,0.25)',
-                  borderRadius: '999px',
-                  padding: '5px 16px',
-                  marginTop: '10px',
-                  cursor: 'pointer',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  color: 'rgba(255,255,255,0.90)',
-                  fontFamily: 'var(--font-dm-mono)',
-                  letterSpacing: '0.04em',
-                  display: 'inline-block',
-                  backdropFilter: 'blur(8px)',
-                  WebkitBackdropFilter: 'blur(8px)',
-                  zIndex: 50,
-                  position: 'relative',
-                } as React.CSSProperties}
-              >
-                Show less ↑
-              </button>
-            )}
-          </div>
-        )}
+              {isTruncated && !expanded && (
+                <button
+                  onClick={handleReadMore}
+                  onTouchEnd={handleReadMore}
+                  style={{
+                    background: 'rgba(255,255,255,0.15)',
+                    border: '1px solid rgba(255,255,255,0.25)',
+                    borderRadius: '999px',
+                    padding: '5px 16px',
+                    marginTop: '10px',
+                    cursor: 'pointer',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    color: 'rgba(255,255,255,0.90)',
+                    fontFamily: 'var(--font-dm-mono)',
+                    letterSpacing: '0.04em',
+                    display: 'inline-block',
+                    backdropFilter: 'blur(8px)',
+                    WebkitBackdropFilter: 'blur(8px)',
+                    zIndex: 50,
+                    position: 'relative',
+                  } as React.CSSProperties}
+                >
+                  Read more ↓
+                </button>
+              )}
 
-        {/* Tap hint */}
-        <p style={{
-          fontSize: '11px',
-          color: 'rgba(255,255,255,0.32)',
-          fontFamily: 'var(--font-dm-mono)',
-          letterSpacing: '0.05em',
-        }}>
-          tap to continue →
-        </p>
+              {expanded && (
+                <button
+                  onClick={handleShowLess}
+                  onTouchEnd={handleShowLess}
+                  style={{
+                    background: 'rgba(255,255,255,0.15)',
+                    border: '1px solid rgba(255,255,255,0.25)',
+                    borderRadius: '999px',
+                    padding: '5px 16px',
+                    marginTop: '10px',
+                    cursor: 'pointer',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    color: 'rgba(255,255,255,0.90)',
+                    fontFamily: 'var(--font-dm-mono)',
+                    letterSpacing: '0.04em',
+                    display: 'inline-block',
+                    backdropFilter: 'blur(8px)',
+                    WebkitBackdropFilter: 'blur(8px)',
+                    zIndex: 50,
+                    position: 'relative',
+                  } as React.CSSProperties}
+                >
+                  Show less ↑
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── TAP ARROWS ── Always visible, left and right */}
+      {/* Left arrow — go back */}
+      <div
+        className="absolute left-4 pointer-events-none"
+        style={{
+          top: '50%',
+          transform: 'translateY(-50%)',
+          zIndex: 25,
+          opacity: 0.45,
+        }}
+      >
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10" stroke="white" strokeOpacity="0.3" fill="rgba(0,0,0,0.2)" />
+          <path d="M14 8l-4 4 4 4" />
+        </svg>
+      </div>
+
+      {/* Right arrow — go forward */}
+      <div
+        className="absolute right-4 pointer-events-none"
+        style={{
+          top: '50%',
+          transform: 'translateY(-50%)',
+          zIndex: 25,
+          opacity: 0.45,
+        }}
+      >
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10" stroke="white" strokeOpacity="0.3" fill="rgba(0,0,0,0.2)" />
+          <path d="M10 8l4 4-4 4" />
+        </svg>
       </div>
     </div>
   );
