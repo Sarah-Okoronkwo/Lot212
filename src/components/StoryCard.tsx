@@ -6,7 +6,7 @@ import { Story, getCategoryColor, getCategoryLabel } from '@/types';
 interface StoryCardProps {
   story: Story;
   isPaused: boolean;
-  isFirst: boolean; // Caption only required on first slide
+  isFirst: boolean;
 }
 
 export default function StoryCard({ story, isPaused, isFirst }: StoryCardProps) {
@@ -24,7 +24,6 @@ export default function StoryCard({ story, isPaused, isFirst }: StoryCardProps) 
     setIsTruncated(false);
   }, [story.id]);
 
-  // Detect actual text overflow
   useEffect(() => {
     if (!subtextRef.current || expanded) return;
     const el = subtextRef.current;
@@ -72,9 +71,27 @@ export default function StoryCard({ story, isPaused, isFirst }: StoryCardProps) 
     setExpanded(false);
   };
 
-  // Show text panel only on first slide OR if there's a caption/subtext
-  const hasText = isFirst ? (story.caption || story.subtext) : (story.caption || story.subtext);
-  const showCaption = isFirst || story.caption;
+  const hasText = !!(story.caption || story.subtext);
+  const showCaption = isFirst || !!story.caption;
+
+  // Shared text shadow — acts like a subtitle outline, readable on any bg
+  const headlineShadow = [
+    '0 0 4px rgba(0,0,0,1)',
+    '-1px -1px 0 rgba(0,0,0,0.9)',
+    '1px -1px 0 rgba(0,0,0,0.9)',
+    '-1px  1px 0 rgba(0,0,0,0.9)',
+    '1px  1px 0 rgba(0,0,0,0.9)',
+    '0 2px 20px rgba(0,0,0,0.95)',
+  ].join(', ');
+
+  const bodyShadow = [
+    '0 0 4px rgba(0,0,0,1)',
+    '-1px -1px 0 rgba(0,0,0,0.8)',
+    '1px -1px 0 rgba(0,0,0,0.8)',
+    '-1px  1px 0 rgba(0,0,0,0.8)',
+    '1px  1px 0 rgba(0,0,0,0.8)',
+    '0 2px 12px rgba(0,0,0,0.95)',
+  ].join(', ');
 
   return (
     <div
@@ -120,32 +137,30 @@ export default function StoryCard({ story, isPaused, isFirst }: StoryCardProps) 
         </>
       )}
 
-      {/* ── GRADIENT ── Only show heavier gradient when there's text */}
+      {/* ── GRADIENT ──
+          Light — just enough to anchor text.
+          Image remains the hero throughout. */}
       {hasText ? (
         <div
           className="absolute inset-0"
           style={{
             background: [
               'linear-gradient(to top,',
-              '  rgba(0,0,0,0.96) 0%,',
-              '  rgba(0,0,0,0.82) 22%,',
-              '  rgba(0,0,0,0.50) 40%,',
-              '  rgba(0,0,0,0.15) 58%,',
-              '  transparent 72%)',
+              '  rgba(0,0,0,0.65) 0%,',
+              '  rgba(0,0,0,0.38) 18%,',
+              '  rgba(0,0,0,0.10) 35%,',
+              '  transparent 50%)',
             ].join(''),
           }}
         />
       ) : (
-        // Minimal gradient when no text — just enough for header
         <div
           className="absolute inset-0"
-          style={{
-            background: 'linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, transparent 20%)',
-          }}
+          style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, transparent 20%)' }}
         />
       )}
 
-      {/* Top vignette */}
+      {/* Top vignette for header readability */}
       <div
         className="absolute inset-0"
         style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, transparent 22%)' }}
@@ -160,7 +175,7 @@ export default function StoryCard({ story, isPaused, isFirst }: StoryCardProps) 
             padding: '0 24px',
           }}
         >
-          {/* Category pill — only on first slide */}
+          {/* Category pill — first slide only */}
           {isFirst && (
             <div style={{ marginBottom: '8px' }}>
               <span style={{
@@ -175,13 +190,14 @@ export default function StoryCard({ story, isPaused, isFirst }: StoryCardProps) 
                 borderRadius: '999px',
                 padding: '4px 12px',
                 display: 'inline-block',
+                textShadow: 'none',
               }}>
                 {getCategoryLabel(story.category)}
               </span>
             </div>
           )}
 
-          {/* Headline — shown on first slide, or if caption exists on other slides */}
+          {/* Headline */}
           {showCaption && story.caption && (
             <p
               className="text-white"
@@ -190,7 +206,7 @@ export default function StoryCard({ story, isPaused, isFirst }: StoryCardProps) 
                 fontWeight: 700,
                 lineHeight: 1.2,
                 letterSpacing: '-0.02em',
-                textShadow: '0 2px 12px rgba(0,0,0,0.7)',
+                textShadow: headlineShadow,
                 marginBottom: story.subtext ? '10px' : '14px',
               }}
             >
@@ -207,8 +223,8 @@ export default function StoryCard({ story, isPaused, isFirst }: StoryCardProps) 
                   fontSize: 'clamp(14px, 3.8vw, 16px)',
                   fontWeight: 400,
                   lineHeight: 1.65,
-                  color: 'rgba(255,255,255,0.88)',
-                  textShadow: '0 1px 8px rgba(0,0,0,0.6)',
+                  color: 'rgba(255,255,255,0.92)',
+                  textShadow: bodyShadow,
                   display: '-webkit-box',
                   WebkitLineClamp: expanded ? 999 : 3,
                   WebkitBoxOrient: 'vertical',
@@ -276,16 +292,10 @@ export default function StoryCard({ story, isPaused, isFirst }: StoryCardProps) 
         </div>
       )}
 
-      {/* ── TAP ARROWS ── Always visible, left and right */}
-      {/* Left arrow — go back */}
+      {/* ── TAP ARROWS ── */}
       <div
         className="absolute left-4 pointer-events-none"
-        style={{
-          top: '50%',
-          transform: 'translateY(-50%)',
-          zIndex: 25,
-          opacity: 0.45,
-        }}
+        style={{ top: '50%', transform: 'translateY(-50%)', zIndex: 25, opacity: 0.45 }}
       >
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="10" stroke="white" strokeOpacity="0.3" fill="rgba(0,0,0,0.2)" />
@@ -293,15 +303,9 @@ export default function StoryCard({ story, isPaused, isFirst }: StoryCardProps) 
         </svg>
       </div>
 
-      {/* Right arrow — go forward */}
       <div
         className="absolute right-4 pointer-events-none"
-        style={{
-          top: '50%',
-          transform: 'translateY(-50%)',
-          zIndex: 25,
-          opacity: 0.45,
-        }}
+        style={{ top: '50%', transform: 'translateY(-50%)', zIndex: 25, opacity: 0.45 }}
       >
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="10" stroke="white" strokeOpacity="0.3" fill="rgba(0,0,0,0.2)" />
