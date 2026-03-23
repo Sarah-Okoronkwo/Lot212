@@ -42,12 +42,21 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
   const currentStory = stories[currentIndex];
   const isVideo = currentStory?.media_type === 'video';
 
+  // Smart exit — goes back if there's history, otherwise goes to homepage
+  const handleExit = () => {
+    if (window.history.length > 1) {
+      router.back();
+    } else {
+      router.push('/');
+    }
+  };
+
   const goToNext = () => {
     if (currentIndex < stories.length - 1) {
       setCurrentIndex((i) => i + 1);
       setIsPaused(false);
     } else {
-      router.back();
+      handleExit();
     }
   };
 
@@ -79,7 +88,7 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight' || e.key === ' ') goToNext();
       if (e.key === 'ArrowLeft') goToPrev();
-      if (e.key === 'Escape') router.back();
+      if (e.key === 'Escape') handleExit();
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
@@ -94,7 +103,7 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
   const handleTouchEnd = (e: React.TouchEvent) => {
     const dy = e.changedTouches[0].clientY - touchStartY.current;
     const dx = Math.abs(e.changedTouches[0].clientX - touchStartX.current);
-    if (dy > 80 && dx < 60) router.back();
+    if (dy > 80 && dx < 60) handleExit();
   };
 
   return (
@@ -148,8 +157,9 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
 
             {/* Header row */}
             <div className="flex items-center gap-3 px-4 pt-3">
+              {/* Back button */}
               <button
-                onClick={() => router.back()}
+                onClick={handleExit}
                 className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all active:scale-90"
                 style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)', position: 'relative', zIndex: 50 }}
               >
@@ -158,6 +168,7 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
                 </svg>
               </button>
 
+              {/* Logo */}
               <div
                 className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
                 style={{ background: 'var(--color-accent, #e8ff47)', color: '#18181f', fontFamily: 'var(--font-dm-mono)' }}
@@ -165,6 +176,7 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
                 212
               </div>
 
+              {/* Date + counter */}
               <div className="flex-1">
                 <p className="text-white text-sm font-semibold leading-tight">{formatDateLabel(date)}</p>
                 <p className="text-white/50 text-xs" style={{ fontFamily: 'var(--font-dm-mono)' }}>
@@ -172,8 +184,9 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
                 </p>
               </div>
 
+              {/* Close button */}
               <button
-                onClick={() => router.back()}
+                onClick={handleExit}
                 className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all active:scale-90"
                 style={{ background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.15)', position: 'relative', zIndex: 50 }}
               >
