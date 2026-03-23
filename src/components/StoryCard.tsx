@@ -74,24 +74,8 @@ export default function StoryCard({ story, isPaused, isFirst }: StoryCardProps) 
   const hasText = !!(story.caption || story.subtext);
   const showCaption = isFirst || !!story.caption;
 
-  // Shared text shadow — acts like a subtitle outline, readable on any bg
-  const headlineShadow = [
-    '0 0 4px rgba(0,0,0,1)',
-    '-1px -1px 0 rgba(0,0,0,0.9)',
-    '1px -1px 0 rgba(0,0,0,0.9)',
-    '-1px  1px 0 rgba(0,0,0,0.9)',
-    '1px  1px 0 rgba(0,0,0,0.9)',
-    '0 2px 20px rgba(0,0,0,0.95)',
-  ].join(', ');
-
-  const bodyShadow = [
-    '0 0 4px rgba(0,0,0,1)',
-    '-1px -1px 0 rgba(0,0,0,0.8)',
-    '1px -1px 0 rgba(0,0,0,0.8)',
-    '-1px  1px 0 rgba(0,0,0,0.8)',
-    '1px  1px 0 rgba(0,0,0,0.8)',
-    '0 2px 12px rgba(0,0,0,0.95)',
-  ].join(', ');
+  const headlineShadow = '0 2px 12px rgba(0,0,0,0.7)';
+  const bodyShadow = '0 1px 8px rgba(0,0,0,0.6)';
 
   return (
     <div
@@ -137,19 +121,18 @@ export default function StoryCard({ story, isPaused, isFirst }: StoryCardProps) 
         </>
       )}
 
-      {/* ── GRADIENT ──
-          Light — just enough to anchor text.
-          Image remains the hero throughout. */}
+      {/* ── GRADIENT ── */}
       {hasText ? (
         <div
           className="absolute inset-0"
           style={{
             background: [
               'linear-gradient(to top,',
-              '  rgba(0,0,0,0.65) 0%,',
-              '  rgba(0,0,0,0.38) 18%,',
-              '  rgba(0,0,0,0.10) 35%,',
-              '  transparent 50%)',
+              '  rgba(0,0,0,0.96) 0%,',
+              '  rgba(0,0,0,0.82) 22%,',
+              '  rgba(0,0,0,0.50) 40%,',
+              '  rgba(0,0,0,0.15) 58%,',
+              '  transparent 72%)',
             ].join(''),
           }}
         />
@@ -160,7 +143,7 @@ export default function StoryCard({ story, isPaused, isFirst }: StoryCardProps) 
         />
       )}
 
-      {/* Top vignette for header readability */}
+      {/* Top vignette */}
       <div
         className="absolute inset-0"
         style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, transparent 22%)' }}
@@ -190,7 +173,6 @@ export default function StoryCard({ story, isPaused, isFirst }: StoryCardProps) 
                 borderRadius: '999px',
                 padding: '4px 12px',
                 display: 'inline-block',
-                textShadow: 'none',
               }}>
                 {getCategoryLabel(story.category)}
               </span>
