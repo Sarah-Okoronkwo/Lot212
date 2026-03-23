@@ -73,7 +73,10 @@ export default function AdminDashboard({ initialStories, userEmail }: AdminDashb
       const fileExt = selectedFile.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
       const mediaType = selectedFile.type.startsWith('video') ? 'video' : 'image';
-      const slug = generateSlug(caption.trim());
+      // Generate slug from caption, or use timestamp if no caption
+      const slug = caption.trim()
+        ? generateSlug(caption.trim())
+        : `slide-${Date.now()}`;
 
       const { error: storageError } = await supabase.storage
         .from('stories')
