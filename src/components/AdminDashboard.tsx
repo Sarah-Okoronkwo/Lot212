@@ -64,7 +64,6 @@ export default function AdminDashboard({ initialStories, userEmail }: AdminDashb
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedFile) { setUploadError('Please select a file.'); return; }
-    if (!caption.trim()) { setUploadError('Please add a caption.'); return; }
 
     setUploading(true);
     setUploadError('');
@@ -232,7 +231,9 @@ export default function AdminDashboard({ initialStories, userEmail }: AdminDashb
 
             {/* Caption */}
             <div>
-              <label className="block text-ink-300 text-xs font-semibold mb-2 uppercase tracking-wider">Caption</label>
+              <label className="block text-ink-300 text-xs font-semibold mb-2 uppercase tracking-wider">
+                Caption <span className="text-ink-600 normal-case tracking-normal font-normal">(required on first slide only)</span>
+              </label>
               <textarea value={caption} onChange={(e) => setCaption(e.target.value)} placeholder="Write a short, punchy headline..." rows={3} className="admin-input resize-none" />
               <div className="flex items-center justify-between mt-1">
                 <p className="text-ink-600 text-xs">{caption.length}/150 characters</p>
@@ -294,7 +295,7 @@ export default function AdminDashboard({ initialStories, userEmail }: AdminDashb
               </div>
             )}
 
-            <button type="submit" disabled={uploading || !selectedFile || !caption.trim()}
+            <button type="submit" disabled={uploading || !selectedFile}
               className="w-full py-3 rounded-xl font-semibold text-sm transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
               style={{ background: 'var(--color-accent)', color: '#18181f' }}>
               {uploading ? 'Publishing...' : 'Publish Story'}
