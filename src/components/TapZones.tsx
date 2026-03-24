@@ -49,25 +49,18 @@ export default function TapZones({
         return;
       }
 
-      // Check for swipe
       const dx = e.clientX - touchStartXRef.current;
       const dy = e.clientY - touchStartYRef.current;
 
+      // Ignore downward swipes — let parent handle them
+      if (dy > 40) return;
+
       if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
-        if (dx > 0) {
-          onTapLeft();
-        } else {
-          onTapRight();
-        }
+        if (dx > 0) { onTapLeft(); } else { onTapRight(); }
         return;
       }
 
-      // Regular tap
-      if (side === 'left') {
-        onTapLeft();
-      } else {
-        onTapRight();
-      }
+      if (side === 'left') { onTapLeft(); } else { onTapRight(); }
     },
     [onTapLeft, onTapRight, onHoldEnd]
   );
@@ -84,7 +77,10 @@ export default function TapZones({
   }, [onHoldEnd]);
 
   return (
-    <div className="absolute z-30 flex" style={{ pointerEvents: 'none', top: '80px', left: 0, right: 0, bottom: 0 }}>
+    <div
+      className="absolute left-0 right-0 bottom-0 z-30 flex"
+      style={{ top: '80px', pointerEvents: 'none' }}
+    >
       {/* Left zone */}
       <div
         className="w-1/3 h-full cursor-pointer"
@@ -94,7 +90,7 @@ export default function TapZones({
         onPointerLeave={handlePointerLeave}
       />
 
-      {/* Middle zone — hold only */}
+      {/* Middle zone */}
       <div
         className="flex-1 h-full"
         style={{ pointerEvents: 'auto', WebkitTapHighlightColor: 'transparent' }}

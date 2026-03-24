@@ -38,11 +38,11 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const touchStartY = useRef(0);
   const touchStartX = useRef(0);
+  const touchStartTime = useRef(0);
 
   const currentStory = stories[currentIndex];
   const isVideo = currentStory?.media_type === 'video';
 
-  // Smart exit — goes back if there's history, otherwise goes to homepage
   const handleExit = () => {
     if (window.history.length > 1) {
       router.back();
@@ -70,16 +70,9 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
   // Auto-advance ONLY for videos
   useEffect(() => {
     if (!isVideo || isPaused) return;
-
-    timerRef.current = setTimeout(() => {
-      goToNext();
-    }, VIDEO_DURATION_MS);
-
+    timerRef.current = setTimeout(() => { goToNext(); }, VIDEO_DURATION_MS);
     return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-        timerRef.current = null;
-      }
+      if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
     };
   }, [currentIndex, isPaused, isVideo]);
 
@@ -94,16 +87,21 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
     return () => window.removeEventListener('keydown', handleKey);
   }, [currentIndex]);
 
-  // Swipe down to exit
+  // Swipe down detection on the outer wrapper
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartY.current = e.touches[0].clientY;
     touchStartX.current = e.touches[0].clientX;
+    touchStartTime.current = Date.now();
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
     const dy = e.changedTouches[0].clientY - touchStartY.current;
     const dx = Math.abs(e.changedTouches[0].clientX - touchStartX.current);
-    if (dy > 80 && dx < 60) handleExit();
+    const dt = Date.now() - touchStartTime.current;
+    // Downward swipe: more vertical than horizontal, fast enough
+    if (dy > 60 && dx < 80 && dt < 500) {
+      handleExit();
+    }
   };
 
   return (
@@ -139,9 +137,9 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
             />
           )}
 
-          {/* Top overlay */}
+          {/* Top overlay — sits above TapZones (z-20 > z-30 won't work, so we use pointer-events) */}
           <div
-            className="absolute top-0 left-0 right-0 z-20 pb-8 pt-safe"
+            className="absolute top-0 left-0 right-0 z-40 pb-8 pt-safe"
             style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, transparent 100%)' }}
           >
             <div className="px-3 pt-3">
@@ -159,9 +157,17 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
             <div className="flex items-center gap-3 px-4 pt-3">
               {/* Back button */}
               <button
-                onClick={handleExit}
+                onPointerDown={(e) => { e.stopPropagation(); }}
+                onClick={(e) => { e.stopPropagation(); handleExit(); }}
                 className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all active:scale-90"
-                style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)', position: 'relative', zIndex: 50 }}
+                style={{
+                  background: 'rgba(255,255,255,0.15)',
+                  backdropFilter: 'blur(8px)',
+                  WebkitBackdropFilter: 'blur(8px)',
+                  position: 'relative',
+                  zIndex: 60,
+                  touchAction: 'manipulation',
+                }}
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M19 12H5M12 5l-7 7 7 7" />
@@ -186,9 +192,18 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
 
               {/* Close button */}
               <button
-                onClick={handleExit}
+                onPointerDown={(e) => { e.stopPropagation(); }}
+                onClick={(e) => { e.stopPropagation(); handleExit(); }}
                 className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all active:scale-90"
-                style={{ background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.15)', position: 'relative', zIndex: 50 }}
+                style={{
+                  background: 'rgba(0,0,0,0.35)',
+                  backdropFilter: 'blur(8px)',
+                  WebkitBackdropFilter: 'blur(8px)',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                  position: 'relative',
+                  zIndex: 60,
+                  touchAction: 'manipulation',
+                }}
               >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
                   <path d="M18 6L6 18M6 6l12 12" />
