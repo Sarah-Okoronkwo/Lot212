@@ -14,6 +14,12 @@ interface ArchiveStoryViewerProps {
   date: string;
 }
 
+declare global {
+  interface Window {
+    gtag?: (...args: unknown[]) => void;
+  }
+}
+
 function formatDateLabel(dateStr: string): string {
   const date = new Date(dateStr + 'T00:00:00');
   const today = new Date();
@@ -43,16 +49,43 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
   const currentStory = stories[currentIndex];
   const isVideo = currentStory?.media_type === 'video';
 
-  // Always go to homepage — works for both internal and external visitors
   const handleExit = () => {
     router.push('/');
   };
 
+  const trackSlideView = (index: number) => {
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'story_slide_view', {
+        story_date: date,
+        slide_number: index + 1,
+        total_slides: stories.length,
+        slide_caption: stories[index]?.caption || '',
+      });
+    }
+  };
+
   const goToNext = () => {
+    // Track the slide being viewed before advancing
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'story_slide_view', {
+        story_date: date,
+        slide_number: currentIndex + 1,
+        total_slides: stories.length,
+        slide_caption: currentStory?.caption || '',
+      });
+    }
+
     if (currentIndex < stories.length - 1) {
       setCurrentIndex((i) => i + 1);
       setIsPaused(false);
     } else {
+      // Track story completion
+      if (typeof window !== 'undefined' && window.gtag) {
+        window.gtag('event', 'story_completed', {
+          story_date: date,
+          total_slides: stories.length,
+        });
+      }
       handleExit();
     }
   };
@@ -63,6 +96,11 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
       setIsPaused(false);
     }
   };
+
+  // Track first slide view on mount
+  useEffect(() => {
+    trackSlideView(0);
+  }, []);
 
   // Auto-advance ONLY for videos
   useEffect(() => {
@@ -133,7 +171,7 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
             />
           )}
 
-          {/* Top overlay — z-40 sits above TapZones z-30 */}
+          {/* Top overlay */}
           <div
             className="absolute top-0 left-0 right-0 z-40 pb-8 pt-safe"
             style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, transparent 100%)' }}
