@@ -43,12 +43,9 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
   const currentStory = stories[currentIndex];
   const isVideo = currentStory?.media_type === 'video';
 
+  // Always go to homepage — works for both internal and external visitors
   const handleExit = () => {
-    if (window.history.length > 1) {
-      router.back();
-    } else {
-      router.push('/');
-    }
+    router.push('/');
   };
 
   const goToNext = () => {
@@ -87,7 +84,7 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
     return () => window.removeEventListener('keydown', handleKey);
   }, [currentIndex]);
 
-  // Swipe down detection on the outer wrapper
+  // Swipe down to exit
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartY.current = e.touches[0].clientY;
     touchStartX.current = e.touches[0].clientX;
@@ -98,8 +95,7 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
     const dy = e.changedTouches[0].clientY - touchStartY.current;
     const dx = Math.abs(e.changedTouches[0].clientX - touchStartX.current);
     const dt = Date.now() - touchStartTime.current;
-    // Downward swipe: more vertical than horizontal, fast enough
-    if (dy > 60 && dx < 80 && dt < 500) {
+    if (dy > 60 && dx < 80 && dt < 600) {
       handleExit();
     }
   };
@@ -137,7 +133,7 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
             />
           )}
 
-          {/* Top overlay — sits above TapZones (z-20 > z-30 won't work, so we use pointer-events) */}
+          {/* Top overlay — z-40 sits above TapZones z-30 */}
           <div
             className="absolute top-0 left-0 right-0 z-40 pb-8 pt-safe"
             style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, transparent 100%)' }}
@@ -153,20 +149,20 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
               />
             </div>
 
-            {/* Header row */}
             <div className="flex items-center gap-3 px-4 pt-3">
               {/* Back button */}
               <button
-                onPointerDown={(e) => { e.stopPropagation(); }}
-                onClick={(e) => { e.stopPropagation(); handleExit(); }}
-                className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all active:scale-90"
+                onClick={handleExit}
+                className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
                 style={{
                   background: 'rgba(255,255,255,0.15)',
                   backdropFilter: 'blur(8px)',
                   WebkitBackdropFilter: 'blur(8px)',
                   position: 'relative',
                   zIndex: 60,
+                  WebkitTapHighlightColor: 'transparent',
                   touchAction: 'manipulation',
+                  cursor: 'pointer',
                 }}
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -192,9 +188,8 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
 
               {/* Close button */}
               <button
-                onPointerDown={(e) => { e.stopPropagation(); }}
-                onClick={(e) => { e.stopPropagation(); handleExit(); }}
-                className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all active:scale-90"
+                onClick={handleExit}
+                className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
                 style={{
                   background: 'rgba(0,0,0,0.35)',
                   backdropFilter: 'blur(8px)',
@@ -202,10 +197,12 @@ export default function ArchiveStoryViewer({ stories, date }: ArchiveStoryViewer
                   border: '1px solid rgba(255,255,255,0.15)',
                   position: 'relative',
                   zIndex: 60,
+                  WebkitTapHighlightColor: 'transparent',
                   touchAction: 'manipulation',
+                  cursor: 'pointer',
                 }}
               >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
                   <path d="M18 6L6 18M6 6l12 12" />
                 </svg>
               </button>
