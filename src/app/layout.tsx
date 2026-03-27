@@ -5,15 +5,16 @@ import { GoogleAnalytics } from '@next/third-parties/google';
 
 export const metadata: Metadata = {
   title: 'Lot 212',
-  description: 'Stay current with the latest news and updates from Lot 212.',
-  keywords: ['Lot 212', 'news', 'stories', 'updates'],
+  description: 'Visual stories worth your time. History, culture, science, food and crime — told one slide at a time.',
+  keywords: ['Lot 212', 'visual stories', 'history', 'culture', 'science', 'food', 'crime'],
   verification: {
     google: 'C_qJdVyxpifyuT_bkmxSJK5xaZ688BT8DUVyKU08H0Q',
   },
   openGraph: {
     title: 'Lot 212',
-    description: 'Stay current with the latest news and updates from Lot 212.',
+    description: 'Visual stories worth your time. History, culture, science, food and crime — told one slide at a time.',
     type: 'website',
+    url: 'https://lot212.com',
   },
 };
 
@@ -39,3 +40,4 @@ export default function RootLayout({
     </html>
   );
 }
+
