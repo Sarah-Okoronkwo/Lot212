@@ -5,6 +5,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 const BLOCKED_PATHS = [
   '/bisaifenxi',
   '/wp-admin',
+  '/cmd_sco',
   '/wp-login',
   '/phpmyadmin',
   '/phpMyAdmin',
