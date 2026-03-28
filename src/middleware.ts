@@ -1,21 +1,78 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
+// ─── Blocked paths (spam, probes, hacks) ──────────────────────────────────
+const BLOCKED_PATHS = [
+  '/bisaifenxi',
+  '/wp-admin',
+  '/wp-login',
+  '/phpmyadmin',
+  '/phpMyAdmin',
+  '/.env',
+  '/.git',
+  '/xmlrpc',
+  '/shell',
+  '/setup.php',
+  '/install.php',
+  '/config.php',
+  '/etc/passwd',
+  '/admin.php',
+  '/boaform',
+  '/cgi-bin',
+];
+
+// ─── Blocked user-agent keywords ──────────────────────────────────────────
+const BLOCKED_UA_KEYWORDS = [
+  'zgrab', 'masscan', 'nmap', 'nikto', 'sqlmap',
+  'dirbuster', 'nuclei', 'python-requests', 'go-http-client',
+  'curl/', 'wget/', 'java/', 'bytespider', 'petalbot',
+  'semrushbot', 'ahrefsbot', 'mj12bot', 'dotbot',
+  'gptbot', 'chatgpt-user', 'ccbot', 'claudebot', 'anthropic-ai',
+];
+
+// ─── Allowed bots (SEO — do not block) ────────────────────────────────────
+const ALLOWED_BOTS = [
+  'googlebot', 'bingbot', 'slurp', 'duckduckbot',
+  'facebot', 'twitterbot', 'linkedinbot', 'whatsapp',
+  'applebot', 'vercelbot',
+];
+
+function shouldBlock(request: NextRequest): boolean {
+  const path = request.nextUrl.pathname.toLowerCase();
+  const ua = (request.headers.get('user-agent') || '').toLowerCase();
+
+  // Block suspicious paths
+  if (BLOCKED_PATHS.some((p) => path.startsWith(p.toLowerCase()))) {
+    return true;
+  }
+
+  // Always allow good SEO bots
+  if (ALLOWED_BOTS.some((b) => ua.includes(b))) {
+    return false;
+  }
+
+  // Block bad user agents
+  if (BLOCKED_UA_KEYWORDS.some((k) => ua.includes(k))) {
+    return true;
+  }
+
+  // Block empty or suspiciously short user agents
+  if (!ua || ua.length < 10) {
+    return true;
+  }
+
+  return false;
+}
+
+// ─── Middleware ────────────────────────────────────────────────────────────
 export async function middleware(request: NextRequest) {
-  const pathname = request.nextUrl.pathname;
-
-  // Block known spam/bot paths
-  const blockedPaths = [
-    '/bisaifenxi',
-    '/wp-admin',
-    '/wp-login',
-    '/.env',
-    '/xmlrpc',
-  ];
-
-  if (blockedPaths.some((path) => pathname.startsWith(path))) {
+  // 1. Bot/spam check runs first, before anything else
+  if (shouldBlock(request)) {
     return new NextResponse(null, { status: 403 });
   }
+
+  // 2. Everything below is your original auth logic — unchanged
+  const pathname = request.nextUrl.pathname;
 
   let supabaseResponse = NextResponse.next({ request });
 
@@ -76,6 +133,9 @@ export async function middleware(request: NextRequest) {
   return supabaseResponse;
 }
 
+// ─── Matcher: expanded to cover all routes (not just /admin) ──────────────
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
 };
