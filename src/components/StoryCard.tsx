@@ -90,11 +90,7 @@ export default function StoryCard({ story, isPaused, isFirst }: StoryCardProps) 
 
   const headlineShadow = '0 2px 12px rgba(0,0,0,0.7)';
   const bodyShadow = '0 1px 8px rgba(0,0,0,0.6)';
-
-  // Landscape images use contain so full image is visible
-  const bgClass = isLandscape
-    ? 'bg-contain bg-no-repeat'
-    : 'bg-cover';
+  const bgClass = isLandscape ? 'bg-contain bg-no-repeat' : 'bg-cover';
 
   return (
     <div
@@ -103,9 +99,23 @@ export default function StoryCard({ story, isPaused, isFirst }: StoryCardProps) 
       style={{
         WebkitTouchCallout: 'none',
         userSelect: 'none',
-        background: '#0e0e14', // dark fill for letterbox bars on landscape
+        background: '#0e0e14',
       } as React.CSSProperties}
     >
+      {/* ── BLURRED BACKDROP for landscape images ── */}
+      {isLandscape && displaySrc && (
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `url(${displaySrc})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            filter: 'blur(30px) brightness(0.35) saturate(1.3)',
+            transform: 'scale(1.1)',
+          }}
+        />
+      )}
+
       {/* ── MEDIA ── */}
       {story.media_type === 'video' ? (
         <video
@@ -181,7 +191,6 @@ export default function StoryCard({ story, isPaused, isFirst }: StoryCardProps) 
             padding: '0 24px',
           }}
         >
-          {/* Category pill — first slide only */}
           {isFirst && (
             <div style={{ marginBottom: '8px' }}>
               <span style={{
@@ -202,7 +211,6 @@ export default function StoryCard({ story, isPaused, isFirst }: StoryCardProps) 
             </div>
           )}
 
-          {/* Headline */}
           {showCaption && story.caption && (
             <p
               className="text-white"
@@ -219,7 +227,6 @@ export default function StoryCard({ story, isPaused, isFirst }: StoryCardProps) 
             </p>
           )}
 
-          {/* Body text */}
           {story.subtext && (
             <div style={{ marginBottom: '12px' }}>
               <p
@@ -240,9 +247,7 @@ export default function StoryCard({ story, isPaused, isFirst }: StoryCardProps) 
               </p>
 
               {isTruncated && !expanded && (
-                <button
-                  onClick={handleReadMore}
-                  onTouchEnd={handleReadMore}
+                <button onClick={handleReadMore} onTouchEnd={handleReadMore}
                   style={{
                     background: 'rgba(255,255,255,0.15)',
                     border: '1px solid rgba(255,255,255,0.25)',
@@ -267,9 +272,7 @@ export default function StoryCard({ story, isPaused, isFirst }: StoryCardProps) 
               )}
 
               {expanded && (
-                <button
-                  onClick={handleShowLess}
-                  onTouchEnd={handleShowLess}
+                <button onClick={handleShowLess} onTouchEnd={handleShowLess}
                   style={{
                     background: 'rgba(255,255,255,0.15)',
                     border: '1px solid rgba(255,255,255,0.25)',
@@ -298,20 +301,16 @@ export default function StoryCard({ story, isPaused, isFirst }: StoryCardProps) 
       )}
 
       {/* ── TAP ARROWS ── */}
-      <div
-        className="absolute left-4 pointer-events-none"
-        style={{ top: '50%', transform: 'translateY(-50%)', zIndex: 25, opacity: 0.45 }}
-      >
+      <div className="absolute left-4 pointer-events-none"
+        style={{ top: '50%', transform: 'translateY(-50%)', zIndex: 25, opacity: 0.45 }}>
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="10" stroke="white" strokeOpacity="0.3" fill="rgba(0,0,0,0.2)" />
           <path d="M14 8l-4 4 4 4" />
         </svg>
       </div>
 
-      <div
-        className="absolute right-4 pointer-events-none"
-        style={{ top: '50%', transform: 'translateY(-50%)', zIndex: 25, opacity: 0.45 }}
-      >
+      <div className="absolute right-4 pointer-events-none"
+        style={{ top: '50%', transform: 'translateY(-50%)', zIndex: 25, opacity: 0.45 }}>
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="10" stroke="white" strokeOpacity="0.3" fill="rgba(0,0,0,0.2)" />
           <path d="M10 8l4 4-4 4" />
