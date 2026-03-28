@@ -16,12 +16,14 @@ export default function StoryCard({ story, isPaused, isFirst }: StoryCardProps) 
   const [isLoading, setIsLoading] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [isTruncated, setIsTruncated] = useState(false);
+  const [isLandscape, setIsLandscape] = useState(false);
   const subtextRef = useRef<HTMLParagraphElement>(null);
   const categoryColor = getCategoryColor(story.category);
 
   useEffect(() => {
     setExpanded(false);
     setIsTruncated(false);
+    setIsLandscape(false);
   }, [story.id]);
 
   useEffect(() => {
@@ -51,6 +53,18 @@ export default function StoryCard({ story, isPaused, isFirst }: StoryCardProps) 
     return () => { img.onload = null; img.onerror = null; };
   }, [story.media_url, story.media_type]);
 
+  // Detect image orientation
+  useEffect(() => {
+    if (story.media_type !== 'image') return;
+    const img = new window.Image();
+    img.src = story.media_url;
+    const check = () => {
+      setIsLandscape(img.naturalWidth > img.naturalHeight);
+    };
+    if (img.complete) { check(); }
+    else { img.onload = check; }
+  }, [story.media_url, story.media_type]);
+
   useEffect(() => {
     if (videoRef.current) {
       if (isPaused) { videoRef.current.pause(); }
@@ -77,11 +91,20 @@ export default function StoryCard({ story, isPaused, isFirst }: StoryCardProps) 
   const headlineShadow = '0 2px 12px rgba(0,0,0,0.7)';
   const bodyShadow = '0 1px 8px rgba(0,0,0,0.6)';
 
+  // Landscape images use contain so full image is visible
+  const bgClass = isLandscape
+    ? 'bg-contain bg-no-repeat'
+    : 'bg-cover';
+
   return (
     <div
       className="absolute inset-0"
       onContextMenu={(e) => e.preventDefault()}
-      style={{ WebkitTouchCallout: 'none', userSelect: 'none' } as React.CSSProperties}
+      style={{
+        WebkitTouchCallout: 'none',
+        userSelect: 'none',
+        background: '#0e0e14', // dark fill for letterbox bars on landscape
+      } as React.CSSProperties}
     >
       {/* ── MEDIA ── */}
       {story.media_type === 'video' ? (
@@ -95,7 +118,7 @@ export default function StoryCard({ story, isPaused, isFirst }: StoryCardProps) 
       ) : (
         <>
           <div
-            className="absolute inset-0 bg-cover bg-center"
+            className={`absolute inset-0 bg-center ${bgClass}`}
             onContextMenu={(e) => e.preventDefault()}
             style={{
               backgroundImage: `url(${displaySrc})`,
@@ -108,7 +131,7 @@ export default function StoryCard({ story, isPaused, isFirst }: StoryCardProps) 
           />
           {!isLoading && loadingSrc === null && (
             <div
-              className="absolute inset-0 bg-cover bg-center"
+              className={`absolute inset-0 bg-center ${bgClass}`}
               onContextMenu={(e) => e.preventDefault()}
               style={{
                 backgroundImage: `url(${displaySrc})`,
