@@ -30,7 +30,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Individual slide pages (only those with slugs)
   const slidePages: MetadataRoute.Sitemap = stories
-    .filter((s) => s.slug)
+    .filter((s) => s.slug && !s.slug.startsWith('slide-'))
     .map((s) => {
       const lagosTime = new Date(new Date(s.created_at).getTime() + 60 * 60 * 1000);
       const date = lagosTime.toISOString().split('T')[0];
